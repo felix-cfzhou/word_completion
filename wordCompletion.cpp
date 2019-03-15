@@ -1,9 +1,6 @@
 #pragma GCC optimize ("O3")
 
 #include <iostream>
-#include <fstream>
-#include <vector>
-#include <string>
 #include "wordCompletion.h"
 
 using namespace std;
@@ -23,7 +20,7 @@ wordCompletion::wordCompletion():
 {}
 
 
-int wordCompletion::access(string w) {
+inline int wordCompletion::access(string w) {
     // pre: w is a non-empty word with characters in {a..z}
     // post: w is added to structure if not previous in; its frequency is increased by 1
     // 	returns ID of word w
@@ -40,14 +37,14 @@ int wordCompletion::access(string w) {
     return it->second;
 }	
 
-vector<vector<int>> wordCompletion::getCompletions(string w, int k) {
+inline vector<vector<int>> wordCompletion::getCompletions(string w, int k) {
     // pre: Dictionary is non-empty. w is non-empty. k>=1.
     // post: see assignment for what to return
 
     vector<vector<int>> A(w.size()+1);
     for(auto &pair : trie.getCompletionIdx(w, k)) {
         // std::cout << pair.first << ", " << pair.second << std::endl;
-        A[pair.first+1].push_back(pair.second);
+        A[pair.first+1].emplace_back(pair.second);
     }
     for(size_t i=0; i<A.size(); ++i) {
         while(static_cast<int>(A[i].size()) < k) A[i].emplace_back(-1);
