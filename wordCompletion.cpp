@@ -14,10 +14,12 @@ static bool _ = [](){
 FixedSizeAllocator<Trie::Node> Trie::Node::pool;
 
 wordCompletion::wordCompletion():
-    wordIdxMap{},
+    wordIdxMap{UINT16_MAX},
     trie{},
     dicSize{0}
-{}
+{
+    wordIdxMap.max_load_factor(0.5);
+}
 
 
 inline int wordCompletion::access(string w) {
