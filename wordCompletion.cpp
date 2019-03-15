@@ -14,9 +14,9 @@ static bool _ = [](){
 FixedSizeAllocator<Trie::Node> Trie::Node::pool;
 
 wordCompletion::wordCompletion():
-    dictionary{},
     wordIdxMap{},
-    trie{dictionary}
+    trie{},
+    dicSize{0}
 {}
 
 
@@ -26,14 +26,13 @@ inline int wordCompletion::access(string w) {
     // 	returns ID of word w
     auto it = wordIdxMap.find(w);
     if(it == wordIdxMap.end()) {
-        wordIdxMap.emplace(w, dictionary.size());
-        dictionary.push_back(std::move(w));
-        trie.access(dictionary.size()-1);
+        trie.access(w, dicSize);
+        wordIdxMap.emplace(std::move(w), dicSize);
          
-        return dictionary.size()-1;
+        return dicSize++;
     }
 
-    trie.access(it->second);
+    trie.access(w, it->second);
     return it->second;
 }	
 
@@ -41,20 +40,7 @@ inline vector<vector<int>> wordCompletion::getCompletions(string w, int k) {
     // pre: Dictionary is non-empty. w is non-empty. k>=1.
     // post: see assignment for what to return
 
-    vector<vector<int>> A(w.size()+1);
-    for(auto &pair : trie.getCompletionIdx(w, k)) {
-        // std::cout << pair.first << ", " << pair.second << std::endl;
-        A[pair.first+1].emplace_back(pair.second);
-    }
-    for(size_t i=0; i<A.size(); ++i) {
-        while(static_cast<int>(A[i].size()) < k) A[i].emplace_back(-1);
-    }
-
-    // Complete this dummy implementation
-    // Remember to ensure the size of your return vector is appropriately set,
-    //  as vector.reserve does not modify the vector's size field
-
-    return A;
+    return trie.getCompletionIdx(w, k);
 }
 
 // Please leave the following "#ifndef" lines in place; this is needed

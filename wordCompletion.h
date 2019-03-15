@@ -8,6 +8,7 @@
 
 
 using fast_t = int_fast32_t;
+using idx_t = int;
 
 
 struct Heap {
@@ -15,20 +16,20 @@ struct Heap {
     constexpr static short base = 16;
 
     struct Node {
-        fast_t wordIdx;
+        idx_t wordIdx;
         fast_t priority;
-        Node(fast_t wordIdx, fast_t priority):
+        Node(idx_t wordIdx, fast_t priority):
             wordIdx{wordIdx},
             priority{priority}
         {}
     };
 
     Node* theHeap;
-    std::unordered_map<fast_t, fast_t> &wordHeapIdxMap;
+    std::unordered_map<idx_t, fast_t> &wordHeapIdxMap;
     fast_t cap;
     fast_t size;
 
-    Heap(std::unordered_map<fast_t, fast_t> &wordHeapIdxMap):
+    Heap(std::unordered_map<idx_t, fast_t> &wordHeapIdxMap):
         theHeap{static_cast<Node*>(malloc(defaultSize * sizeof(Node)))},
         wordHeapIdxMap{wordHeapIdxMap},
         cap{defaultSize},
@@ -58,7 +59,7 @@ struct Heap {
         }
     }
 
-    void insert(fast_t wordIdx) {
+    void insert(idx_t wordIdx) {
         increaseCap();
         theHeap[size] = Node(wordIdx, 1);
         wordHeapIdxMap.emplace(wordIdx, size);
@@ -72,9 +73,11 @@ struct Heap {
         // fixDown(wordHeapIdx);
     }
 
-    std::vector<fast_t> kMost(fast_t k) {
-        std::vector<fast_t> result;
-        for(fast_t curr=0; curr<k && curr<size; ++curr) result.emplace_back(theHeap[curr].wordIdx);
+    std::vector<idx_t> kMost(fast_t k) {
+        std::vector<idx_t> result;
+        fast_t curr = 0;
+        for(; curr<k && curr<size; ++curr) result.emplace_back(theHeap[curr].wordIdx);
+        for(; curr<k; ++curr) result.emplace_back(-1);
 
         return result;
     }
@@ -84,7 +87,7 @@ struct Heap {
 };
 
 
-template<typename T, fast_t N=10000000> struct FixedSizeAllocator {
+template<typename T, fast_t N=7000000> struct FixedSizeAllocator {
     union Slot {
         fast_t next;
         T data;
@@ -141,7 +144,7 @@ struct Trie {
             pool.deallocate(p);
         }
 
-        std::unordered_map<fast_t, fast_t> wordHeapIdxMap;
+        std::unordered_map<idx_t, fast_t> wordHeapIdxMap;
         Heap heap;
         Node* children[numChildren];
 
@@ -157,22 +160,19 @@ struct Trie {
         }
     };
 
-    const std::vector<std::string> &dictionary;
     Node* theTrie;
 
-    Trie(const std::vector<std::string> &dictionary):
-        dictionary{dictionary},
+    Trie():
         theTrie{new Node {}}
     {}
 
-    void access(fast_t wordIdx) {
+    void access(const std::string &word, idx_t wordIdx) {
         Node *current = theTrie;
         auto it = current->wordHeapIdxMap.find(wordIdx);
         if(it == current->wordHeapIdxMap.end()) current->heap.insert(wordIdx);
         else current->heap.increasePriority(it->second);
 
 
-        const std::string &word = dictionary.at(wordIdx);
         for(size_t k=0; k<word.size(); ++k) {
             Node *&nextNode = current->getChild(word[k]); 
             if(!nextNode) nextNode = new Node {};
@@ -185,22 +185,21 @@ struct Trie {
         } 
     }
 
-    std::vector<std::pair<fast_t, fast_t>> getCompletionIdx(const std::string &word, fast_t multiplicity) {
-        std::vector<std::pair<fast_t, fast_t>> result;
+    std::vector<std::vector<idx_t>> getCompletionIdx(const std::string &word, fast_t multiplicity) {
+        std::vector<std::vector<idx_t>> result;
+        result.reserve(word.size() + 1);
 
         Node *current = theTrie;
-        for(fast_t idx : current->heap.kMost(multiplicity)) {
-            result.emplace_back(-1, idx);
-        }
+        result.emplace_back(current->heap.kMost(multiplicity));
 
-        for(size_t k=0; k<word.size(); ++k) {
+        size_t k = 0;
+        for(; k<word.size(); ++k) {
             current = current->getChild(word[k]);
             if(!current) break;
 
-            for(fast_t idx : current->heap.kMost(multiplicity)) {
-                result.emplace_back(k, idx);
-            }
+            result.emplace_back(current->heap.kMost(multiplicity));
         }
+        for(; k<word.size(); ++k) result.emplace_back(multiplicity, -1);
 
         return result;
     }
@@ -211,9 +210,9 @@ struct Trie {
 
 class wordCompletion{
     //You may add any private members you like here
-    std::vector<std::string> dictionary;
-    std::unordered_map<std::string, int> wordIdxMap;
+    std::unordered_map<std::string, idx_t> wordIdxMap;
     Trie trie;
+    fast_t dicSize;
 
 
     public:
