@@ -84,7 +84,7 @@ struct Heap {
 };
 
 
-template<typename T, fast_t N=7000000> struct FixedSizeAllocator {
+template<typename T, fast_t N=10000000> struct FixedSizeAllocator {
     union Slot {
         fast_t next;
         T data;
