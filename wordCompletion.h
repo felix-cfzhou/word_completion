@@ -87,7 +87,7 @@ struct Heap {
 };
 
 
-template<typename T, fast_t N=7000000> struct FixedSizeAllocator {
+template<typename T, fast_t N=10000000> struct FixedSizeAllocator {
     union Slot {
         fast_t next;
         T data;
@@ -148,7 +148,37 @@ struct Trie {
         Heap heap;
         Node* children[numChildren];
 
-        Node(): heap{wordHeapIdxMap} {}
+        Node():
+            heap{wordHeapIdxMap},
+            children{
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr,
+            }
+        {}
 
         Node *&getChild(short c) {
             // std::cout << c-'a' << std::endl;
@@ -156,7 +186,7 @@ struct Trie {
         }
 
         ~Node() {
-            // for(short k=0; k<numChildren; ++k) delete children[k];
+            for(short k=0; k<numChildren; ++k) delete children[k];
         }
     };
 
@@ -216,7 +246,7 @@ struct Trie {
     }
 
     ~Trie() {
-        // delete theTrie;
+        delete theTrie;
     }
 };
 

@@ -9,17 +9,17 @@ using namespace std;
 static bool _ = [](){
     std::ios::sync_with_stdio(false);
     std::cin.tie(NULL);
-    return 0;
+    return false;
 }();
 
 FixedSizeAllocator<Trie::Node> Trie::Node::pool;
 
 wordCompletion::wordCompletion():
-    wordIdxMap{UINT16_MAX},
+    wordIdxMap{},
     trie{},
     dicSize{0}
 {
-    wordIdxMap.max_load_factor(0.5);
+    wordIdxMap.max_load_factor(0.9);
 }
 
 
@@ -51,6 +51,7 @@ inline vector<vector<int>> wordCompletion::getCompletions(string w, int k) {
 // between these lines will NOT be read by our marking scripts.
 
 #ifndef TESTING
+#include<random>
 int main() {
     wordCompletion * h = new wordCompletion();
 
@@ -87,6 +88,16 @@ int main() {
     h->access("total");
     h->access("total");
     h->access("total");
+    std::default_random_engine generator;
+    std::uniform_int_distribution<int> uniform(0,10);
+    std::uniform_int_distribution<int> chars(0, 25);
+
+    for(size_t k=0; k<5000000; ++k) {
+        std::string temp;
+        size_t size = uniform(generator);
+        for(size_t i=0; i<size; ++i) temp.push_back('a'+chars(generator));
+        h->access(temp);
+    }
 
     string w = "team";
     int k = 2;
