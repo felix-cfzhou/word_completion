@@ -7,13 +7,13 @@
 //You may add any include statements here
 
 
-using fast_t = int_fast32_t;
+using fast_t = int;
 using idx_t = int;
 
 
 struct Heap {
-    constexpr static fast_t defaultSize = 128; 
-    constexpr static short base = 16;
+    constexpr static fast_t defaultSize = 8; 
+    constexpr static short base = 4;
 
     struct Node {
         idx_t wordIdx;
@@ -99,7 +99,9 @@ template<typename T, fast_t N=10000000> struct FixedSizeAllocator {
     Slot theSlots[N];
     fast_t first = 0;
 
-    FixedSizeAllocator() {
+    FixedSizeAllocator()
+        // :theSlots{static_cast<Slot*>(malloc(N*sizeof(T)))}
+    {
         for (fast_t i = 0; i < N - 1; ++i) {
             theSlots[i].next = i + 1;
         }
@@ -119,7 +121,9 @@ template<typename T, fast_t N=10000000> struct FixedSizeAllocator {
         first = index;
     }
 
-    ~FixedSizeAllocator() {}
+    ~FixedSizeAllocator() {
+        // free(theSlots);
+    }
 };
 
 struct Trie {
@@ -178,7 +182,9 @@ struct Trie {
                 nullptr,
                 nullptr,
             }
-        {}
+        {
+            wordHeapIdxMap.max_load_factor(3.0);
+        }
 
         Node *&getChild(short c) {
             // std::cout << c-'a' << std::endl;
@@ -186,7 +192,7 @@ struct Trie {
         }
 
         ~Node() {
-            for(short k=0; k<numChildren; ++k) delete children[k];
+            // for(short k=0; k<numChildren; ++k) delete children[k];
         }
     };
 
@@ -246,7 +252,7 @@ struct Trie {
     }
 
     ~Trie() {
-        delete theTrie;
+        // delete theTrie;
     }
 };
 

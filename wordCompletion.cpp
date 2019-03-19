@@ -1,4 +1,4 @@
-#pragma GCC optimize ("O3")
+#pragma GCC optimize ("O2")
 #pragma GCC optimize ("Ofast")
 
 #include <iostream>
@@ -19,7 +19,7 @@ wordCompletion::wordCompletion():
     trie{},
     dicSize{0}
 {
-    wordIdxMap.max_load_factor(0.9);
+    wordIdxMap.max_load_factor(3.0);
 }
 
 
@@ -89,10 +89,10 @@ int main() {
     h->access("total");
     h->access("total");
     std::default_random_engine generator;
-    std::uniform_int_distribution<int> uniform(0,10);
+    std::uniform_int_distribution<int> uniform(0,20);
     std::uniform_int_distribution<int> chars(0, 25);
 
-    for(size_t k=0; k<5000000; ++k) {
+    for(size_t k=0; k<5000; ++k) {
         std::string temp;
         size_t size = uniform(generator);
         for(size_t i=0; i<size; ++i) temp.push_back('a'+chars(generator));
