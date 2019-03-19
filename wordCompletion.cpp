@@ -1,4 +1,5 @@
 #pragma GCC optimize ("O3")
+#pragma GCC optimize ("Ofast")
 
 #include <iostream>
 #include "wordCompletion.h"
@@ -28,7 +29,7 @@ inline int wordCompletion::access(string w) {
     // 	returns ID of word w
     auto it = wordIdxMap.find(w);
     if(it == wordIdxMap.end()) {
-        trie.access(w, dicSize);
+        trie.insert(w, dicSize);
         wordIdxMap.emplace(std::move(w), dicSize);
          
         return dicSize++;

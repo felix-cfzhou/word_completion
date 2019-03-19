@@ -70,11 +70,11 @@ struct Heap {
     void increasePriority(fast_t wordHeapIdx) {
         ++theHeap[wordHeapIdx].priority;
         fixUp(wordHeapIdx);
-        // fixDown(wordHeapIdx);
     }
 
     std::vector<idx_t> kMost(fast_t k) {
         std::vector<idx_t> result;
+        result.reserve(k);
         fast_t curr = 0;
         for(; curr<k && curr<size; ++curr) result.emplace_back(theHeap[curr].wordIdx);
         for(; curr<k; ++curr) result.emplace_back(-1);
@@ -156,7 +156,7 @@ struct Trie {
         }
 
         ~Node() {
-            for(short k=0; k<numChildren; ++k) delete children[k];
+            // for(short k=0; k<numChildren; ++k) delete children[k];
         }
     };
 
@@ -168,18 +168,29 @@ struct Trie {
 
     void access(const std::string &word, idx_t wordIdx) {
         Node *current = theTrie;
-        auto it = current->wordHeapIdxMap.find(wordIdx);
-        if(it == current->wordHeapIdxMap.end()) current->heap.insert(wordIdx);
-        else current->heap.increasePriority(it->second);
+        current->heap.increasePriority(current->wordHeapIdxMap.at(wordIdx));
 
 
         for(size_t k=0; k<word.size(); ++k) {
             Node *&nextNode = current->getChild(word[k]); 
             if(!nextNode) nextNode = new Node {};
 
-            it = nextNode->wordHeapIdxMap.find(wordIdx);
-            if(it == nextNode->wordHeapIdxMap.end()) nextNode->heap.insert(wordIdx);
-            else nextNode->heap.increasePriority(it->second);
+            nextNode->heap.insert(current->wordHeapIdxMap.at(wordIdx));
+
+            current = nextNode;
+        } 
+    }
+
+    void insert(const std::string &word, idx_t wordIdx) {
+        Node *current = theTrie;
+        current->heap.insert(wordIdx);
+
+
+        for(size_t k=0; k<word.size(); ++k) {
+            Node *&nextNode = current->getChild(word[k]); 
+            if(!nextNode) nextNode = new Node {};
+
+            nextNode->heap.insert(wordIdx);
 
             current = nextNode;
         } 
@@ -204,7 +215,9 @@ struct Trie {
         return result;
     }
 
-    ~Trie() {delete theTrie;}
+    ~Trie() {
+        // delete theTrie;
+    }
 };
 
 
