@@ -87,42 +87,26 @@ struct Heap {
 };
 
 
-template<typename T, fast_t N=10000000> struct FixedSizeAllocator {
-    union Slot {
-        fast_t next;
-        T data;
-        Slot(): next{0} {}
-
-        ~Slot() {}
-    };
-
-    Slot theSlots[N];
-    fast_t first = 0;
+template<typename T, fast_t N=INT16_MAX> struct FixedSizeAllocator {
+    std::vector<T*> theBlocks;
+    fast_t next = 0;
 
     FixedSizeAllocator()
-        // :theSlots{static_cast<Slot*>(malloc(N*sizeof(T)))}
-    {
-        for (fast_t i = 0; i < N - 1; ++i) {
-            theSlots[i].next = i + 1;
-        }
-        theSlots[N - 1].next = -1;
-    }
+        :theBlocks{static_cast<T*>(malloc(N*sizeof(T)))}
+    {}
 
     T *allocate() noexcept {
-        if (first == -1) return nullptr;
-        T *result = &(theSlots[first].data);
-        first = theSlots[first].next;
-        return result;
-    }
-
-    void deallocate(void *item) noexcept {
-        fast_t index = (static_cast<char*>(item) - reinterpret_cast<char*>(theSlots)) / sizeof(Slot);
-        theSlots[index].next = first;
-        first = index;
+        if (next == N) {
+            theBlocks.emplace_back(static_cast<T*>(malloc(N*sizeof(T))));
+            next = 0;
+        }
+        return &theBlocks.back()[next++];
     }
 
     ~FixedSizeAllocator() {
-        // free(theSlots);
+        for (auto ptr : theBlocks) {
+            free(ptr);
+        }
     }
 };
 
@@ -143,10 +127,7 @@ struct Trie {
             }
         }
 
-        static void operator delete(void *p) noexcept {
-            if (p == nullptr) return;
-            pool.deallocate(p);
-        }
+        static void operator delete(void *) noexcept {}
 
         std::unordered_map<idx_t, fast_t> wordHeapIdxMap;
         Heap heap;
