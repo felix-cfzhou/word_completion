@@ -87,26 +87,47 @@ struct Heap {
 };
 
 
-template<typename T, fast_t N=INT16_MAX> struct FixedSizeAllocator {
-    std::vector<T*> theBlocks;
-    fast_t next = 0;
+template<typename T, fast_t N=10> struct FixedSizeAllocator {
+    constexpr static size_t defaultSize = 2;
 
-    FixedSizeAllocator()
-        :theBlocks{static_cast<T*>(malloc(N*sizeof(T)))}
-    {}
+    T** theBlocks;
+    fast_t sizeBlocks;
+    fast_t capBlocks;
+    fast_t nextSlot;
+
+    FixedSizeAllocator():
+        theBlocks{static_cast<T**>(malloc(defaultSize*sizeof(T*)))},
+        sizeBlocks{1},
+        capBlocks{defaultSize},
+        nextSlot{0}
+    {
+        theBlocks[0] = static_cast<T*>(malloc(N*sizeof(T)));
+    }
 
     T *allocate() noexcept {
-        if (next == N) {
-            theBlocks.emplace_back(static_cast<T*>(malloc(N*sizeof(T))));
-            next = 0;
+        if(nextSlot == N) {
+            if(sizeBlocks == capBlocks) {
+                theBlocks = static_cast<T**>(realloc(theBlocks, 2*capBlocks*sizeof(T*)));
+                capBlocks *= 2;
+            }
+            theBlocks[sizeBlocks++] = static_cast<T*>(malloc(N*sizeof(T)));
+            nextSlot = 0;
         }
-        return &theBlocks.back()[next++];
+        return &theBlocks[sizeBlocks-1][nextSlot++];
     }
 
     ~FixedSizeAllocator() {
-        for (auto ptr : theBlocks) {
-            free(ptr);
+        for (fast_t k=0; k<sizeBlocks-1; ++k) {
+            for(fast_t l=0; l<N; ++l) {
+                theBlocks[k][l].~T();
+            }
+            free(theBlocks[k]);
         }
+        for(fast_t l=0; l<nextSlot; ++l) {
+            theBlocks[sizeBlocks-1][l].~T();
+        }
+        free(theBlocks[sizeBlocks-1]);
+        free(theBlocks);
     }
 };
 

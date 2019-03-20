@@ -92,7 +92,7 @@ int main() {
     std::uniform_int_distribution<int> uniform(0,20);
     std::uniform_int_distribution<int> chars(0, 25);
 
-    for(size_t k=0; k<5000; ++k) {
+    for(size_t k=0; k<5000000; ++k) {
         std::string temp;
         size_t size = uniform(generator);
         for(size_t i=0; i<size; ++i) temp.push_back('a'+chars(generator));
