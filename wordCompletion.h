@@ -115,16 +115,8 @@ struct Trie {
         constexpr static short numChildren = 26;
         static FixedSizeAllocator<Node> pool;
 
-        static void* operator new(size_t size) {
-            if (size != sizeof(Node)) throw std::bad_alloc{};
-            while (true) {
-                void *p = pool.allocate();
-                if (p) return p;
-                std::new_handler h = std::set_new_handler(0);
-                std::set_new_handler(h);
-                if (h) h();
-                else throw std::bad_alloc{};
-            }
+        static void* operator new(size_t) {
+            return pool.allocate();
         }
 
         static void operator delete(void *) noexcept {}
