@@ -1,13 +1,6 @@
-#include <iostream>
 #include "wordCompletion.h"
 
 using namespace std;
-
-static bool _ = [](){
-    std::ios::sync_with_stdio(false);
-    std::cin.tie(NULL);
-    return false;
-}();
 
 FixedSizeAllocator<Trie::Node> Trie::Node::pool;
 
@@ -47,8 +40,7 @@ vector<vector<int>> wordCompletion::getCompletions(string w, int k) {
 // for the cs240 test scripts to run correctly. Anything that you put
 // between these lines will NOT be read by our marking scripts.
 
-#ifndef TESTING
-#include<random>
+#ifdef TESTING
 int main() {
     wordCompletion * h = new wordCompletion();
 
@@ -85,18 +77,6 @@ int main() {
     h->access("total");
     h->access("total");
     h->access("total");
-    /*
-    std::default_random_engine generator;
-    std::uniform_int_distribution<int> uniform(0,20);
-    std::uniform_int_distribution<int> chars(0, 25);
-
-    for(size_t k=0; k<5000000; ++k) {
-        std::string temp;
-        size_t size = uniform(generator);
-        for(size_t i=0; i<size; ++i) temp.push_back('a'+chars(generator));
-        h->access(temp);
-    }
-    */
 
     string w = "team";
     int k = 2;

@@ -1,4 +1,4 @@
-#pragma GCC optimize ("O3")
+#pragma GCC optimize ("O2")
 #pragma GCC optimize ("Ofast")
 
 #ifndef WORDCOMPLETION
@@ -7,7 +7,14 @@
 #include<vector>
 #include<string>
 #include<unordered_map>
+#include<iostream>
 //You may add any include statements here
+
+static bool _ = [](){
+    std::ios::sync_with_stdio(false);
+    std::cin.tie(NULL);
+    return false;
+}();
 
 
 using fast_t = int;
@@ -72,8 +79,6 @@ struct Heap {
         fast_t curr = 0;
         for(; curr<k && curr<size; ++curr) result.emplace_back(theHeap[curr].wordIdx);
         for(; curr<k; ++curr) result.emplace_back(-1);
-        for(fast_t l=0; l<size; ++l) std::cout << theHeap[l].priority << ' ' << theHeap[l].wordIdx << std::endl;
-        std::cout << "---------------" << std::endl;
 
         return result;
     }
