@@ -17,13 +17,11 @@ static bool _ = [](){
 }();
 
 
-using fast_t = int;
+using fast_t = int_fast32_t;
 using idx_t = int;
 
 
 struct Heap {
-    constexpr static fast_t defaultSize = 8; 
-
     struct Node {
         idx_t wordIdx;
         fast_t priority;
@@ -33,23 +31,14 @@ struct Heap {
         {}
     };
 
-    Node* theHeap;
+    std::vector<Node> theHeap;
     std::unordered_map<idx_t, fast_t> &wordHeapIdxMap;
-    fast_t cap;
-    fast_t size;
 
     Heap(std::unordered_map<idx_t, fast_t> &wordHeapIdxMap):
-        theHeap{static_cast<Node*>(malloc(defaultSize * sizeof(Node)))},
-        wordHeapIdxMap{wordHeapIdxMap},
-        cap{defaultSize},
-        size{0}
-    {}
-
-    void increaseCap() {
-        if(size == cap) {
-            theHeap = static_cast<Node*>(realloc(theHeap, 2*cap*sizeof(Node)));
-            cap *= 2;
-        }
+        theHeap{},
+        wordHeapIdxMap{wordHeapIdxMap}
+    {
+        theHeap.reserve(INT16_MAX);
     }
 
     void fixUp(fast_t i) {
@@ -64,31 +53,26 @@ struct Heap {
     }
 
     void insert(idx_t wordIdx) {
-        increaseCap();
-        theHeap[size] = Node(wordIdx, 1);
-        wordHeapIdxMap.emplace(wordIdx, size++);
+        wordHeapIdxMap.emplace(wordIdx, theHeap.size());
+        theHeap.emplace_back(wordIdx, 1);
     }
     void increasePriority(fast_t wordHeapIdx) {
         ++theHeap[wordHeapIdx].priority;
-        fixUp(wordHeapIdx);
+        // fixUp(wordHeapIdx);
     }
 
     std::vector<idx_t> kMost(fast_t k) {
         std::vector<idx_t> result;
         result.reserve(k);
         fast_t curr = 0;
-        for(; curr<k && curr<size; ++curr) result.emplace_back(theHeap[curr].wordIdx);
+        for(; curr<k && curr<static_cast<fast_t>(theHeap.size()); ++curr) result.emplace_back(theHeap[curr].wordIdx);
         for(; curr<k; ++curr) result.emplace_back(-1);
 
         return result;
     }
-
-
-    ~Heap() {free(theHeap);}
 };
 
-
-template<typename T, fast_t N=10> struct FixedSizeAllocator {
+template<typename T, fast_t N=INT8_MAX> struct FixedSizeAllocator {
     constexpr static size_t defaultSize = 2;
 
     T** theBlocks;
@@ -101,29 +85,29 @@ template<typename T, fast_t N=10> struct FixedSizeAllocator {
         sizeBlocks{1},
         capBlocks{defaultSize},
         nextSlot{0}
-    {
+    {   
         theBlocks[0] = static_cast<T*>(malloc(N*sizeof(T)));
-    }
+    }   
 
     T *allocate() noexcept {
         if(nextSlot == N) {
             if(sizeBlocks == capBlocks) {
                 theBlocks = static_cast<T**>(realloc(theBlocks, 2*capBlocks*sizeof(T*)));
                 capBlocks *= 2;
-            }
+            }   
             theBlocks[sizeBlocks++] = static_cast<T*>(malloc(N*sizeof(T)));
             nextSlot = 0;
-        }
+        }   
         return &theBlocks[sizeBlocks-1][nextSlot++];
-    }
+    }   
 
     ~FixedSizeAllocator() {
         for (fast_t k=0; k<sizeBlocks-1; ++k) {
             for(fast_t l=0; l<N; ++l) {
                 theBlocks[k][l].~T();
-            }
+            }   
             free(theBlocks[k]);
-        }
+        }   
         for(fast_t l=0; l<nextSlot; ++l) {
             theBlocks[sizeBlocks-1][l].~T();
         }
@@ -132,10 +116,17 @@ template<typename T, fast_t N=10> struct FixedSizeAllocator {
     }
 };
 
+
+
 struct Trie {
     struct Node {
         constexpr static short numChildren = 26;
+
         static FixedSizeAllocator<Node> pool;
+
+        std::unordered_map<idx_t, fast_t> wordHeapIdxMap;
+        Heap heap;
+        Node* children[numChildren];
 
         static void* operator new(size_t) {
             return pool.allocate();
@@ -143,9 +134,6 @@ struct Trie {
 
         static void operator delete(void *) noexcept {}
 
-        std::unordered_map<idx_t, fast_t> wordHeapIdxMap;
-        Heap heap;
-        Node* children[numChildren];
 
         Node():
             wordHeapIdxMap(INT8_MAX),
@@ -178,9 +166,7 @@ struct Trie {
                 nullptr,
                 nullptr,
             }
-        {
-            wordHeapIdxMap.max_load_factor(0.5);
-        }
+        {}
 
         Node *&getChild(short c) {
             // std::cout << c-'a' << std::endl;
@@ -244,7 +230,7 @@ struct Trie {
     }
 
     ~Trie() {
-        // delete theTrie;
+        //delete theTrie;
     }
 };
 
@@ -253,14 +239,9 @@ class wordCompletion{
     //You may add any private members you like here
     std::unordered_map<std::string, idx_t> wordIdxMap;
     Trie trie;
-    fast_t dicSize;
-
 
     public:
     //You may add any public members you like here
-
-
-
     //DO NOT CHANGE THE PROVIDED INTERFACE BELOW
     wordCompletion();
 

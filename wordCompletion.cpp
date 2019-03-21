@@ -1,3 +1,6 @@
+#pragma GCC optimize ("O2")
+#pragma GCC optimize ("Ofast")
+
 #include "wordCompletion.h"
 
 using namespace std;
@@ -6,8 +9,7 @@ FixedSizeAllocator<Trie::Node> Trie::Node::pool;
 
 wordCompletion::wordCompletion():
     wordIdxMap(INT16_MAX),
-    trie{},
-    dicSize{0}
+    trie{}
 {
     wordIdxMap.max_load_factor(0.5);
 }
@@ -19,10 +21,11 @@ int wordCompletion::access(string w) {
     // 	returns ID of word w
     auto it = wordIdxMap.find(w);
     if(it == wordIdxMap.end()) {
-        trie.insert(w, dicSize);
-        wordIdxMap.emplace(std::move(w), dicSize);
+        idx_t idx = wordIdxMap.size();
+        trie.insert(w, idx);
+        wordIdxMap.emplace(std::move(w), idx);
          
-        return dicSize++;
+        return idx;
     }
 
     trie.access(w, it->second);
@@ -33,7 +36,7 @@ vector<vector<int>> wordCompletion::getCompletions(string w, int k) {
     // pre: Dictionary is non-empty. w is non-empty. k>=1.
     // post: see assignment for what to return
 
-    return trie.getCompletionIdx(w, k);
+    return trie.getCompletionIdx(std::move(w), k);
 }
 
 // Please leave the following "#ifndef" lines in place; this is needed
