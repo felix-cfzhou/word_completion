@@ -38,10 +38,10 @@ struct Heap {
         theHeap{},
         wordHeapIdxMap{wordHeapIdxMap}
     {
-        theHeap.reserve(INT16_MAX);
+        theHeap.reserve(INT8_MAX);
     }
 
-    void fixUp(fast_t i) {
+    void fixUp(fast_t i) { // FIXME
         auto &wordHeapIdxMapEntry = wordHeapIdxMap.at(theHeap[i].wordIdx);
 
         for(int p=i-1 ;p>=0 && theHeap[p].priority < theHeap[i].priority; --p) {
@@ -72,7 +72,7 @@ struct Heap {
     }
 };
 
-template<typename T, fast_t N=INT8_MAX> struct FixedSizeAllocator {
+template<typename T, fast_t N=4096> struct FixedSizeAllocator {
     constexpr static size_t defaultSize = 2;
 
     T** theBlocks;
@@ -102,16 +102,9 @@ template<typename T, fast_t N=INT8_MAX> struct FixedSizeAllocator {
     }   
 
     ~FixedSizeAllocator() {
-        for (fast_t k=0; k<sizeBlocks-1; ++k) {
-            for(fast_t l=0; l<N; ++l) {
-                theBlocks[k][l].~T();
-            }   
+        for (fast_t k=0; k<sizeBlocks; ++k) {
             free(theBlocks[k]);
-        }   
-        for(fast_t l=0; l<nextSlot; ++l) {
-            theBlocks[sizeBlocks-1][l].~T();
         }
-        free(theBlocks[sizeBlocks-1]);
         free(theBlocks);
     }
 };
@@ -166,15 +159,16 @@ struct Trie {
                 nullptr,
                 nullptr,
             }
-        {}
+        {
+            wordHeapIdxMap.max_load_factor(0.5);
+        }
 
-        Node *&getChild(short c) {
-            // std::cout << c-'a' << std::endl;
+        Node *getChild(short c) {
             return children[c-'a'];
         }
 
         ~Node() {
-            // for(short k=0; k<numChildren; ++k) delete children[k];
+            for(short k=0; k<numChildren; ++k) delete children[k];
         }
     };
 
@@ -201,7 +195,7 @@ struct Trie {
 
 
         for(size_t k=0; k<word.size(); ++k) {
-            Node *&nextNode = current->getChild(word[k]); 
+            Node *&nextNode = current->children[word[k]-'a']; 
             if(!nextNode) nextNode = new Node {};
 
             nextNode->heap.insert(wordIdx);
@@ -230,7 +224,7 @@ struct Trie {
     }
 
     ~Trie() {
-        //delete theTrie;
+        delete theTrie;
     }
 };
 
