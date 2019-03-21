@@ -1,6 +1,3 @@
-#pragma GCC optimize ("O2")
-#pragma GCC optimize ("Ofast")
-
 #include <iostream>
 #include "wordCompletion.h"
 
@@ -15,15 +12,15 @@ static bool _ = [](){
 FixedSizeAllocator<Trie::Node> Trie::Node::pool;
 
 wordCompletion::wordCompletion():
-    wordIdxMap{},
+    wordIdxMap(INT16_MAX),
     trie{},
     dicSize{0}
 {
-    wordIdxMap.max_load_factor(3.0);
+    wordIdxMap.max_load_factor(0.5);
 }
 
 
-inline int wordCompletion::access(string w) {
+int wordCompletion::access(string w) {
     // pre: w is a non-empty word with characters in {a..z}
     // post: w is added to structure if not previous in; its frequency is increased by 1
     // 	returns ID of word w
@@ -39,7 +36,7 @@ inline int wordCompletion::access(string w) {
     return it->second;
 }	
 
-inline vector<vector<int>> wordCompletion::getCompletions(string w, int k) {
+vector<vector<int>> wordCompletion::getCompletions(string w, int k) {
     // pre: Dictionary is non-empty. w is non-empty. k>=1.
     // post: see assignment for what to return
 
@@ -88,6 +85,7 @@ int main() {
     h->access("total");
     h->access("total");
     h->access("total");
+    /*
     std::default_random_engine generator;
     std::uniform_int_distribution<int> uniform(0,20);
     std::uniform_int_distribution<int> chars(0, 25);
@@ -98,6 +96,7 @@ int main() {
         for(size_t i=0; i<size; ++i) temp.push_back('a'+chars(generator));
         h->access(temp);
     }
+    */
 
     string w = "team";
     int k = 2;

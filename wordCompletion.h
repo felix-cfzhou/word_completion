@@ -1,3 +1,6 @@
+#pragma GCC optimize ("O3")
+#pragma GCC optimize ("Ofast")
+
 #ifndef WORDCOMPLETION
 #define WORDCOMPLETION
 
@@ -13,7 +16,6 @@ using idx_t = int;
 
 struct Heap {
     constexpr static fast_t defaultSize = 8; 
-    constexpr static short base = 4;
 
     struct Node {
         idx_t wordIdx;
@@ -36,11 +38,6 @@ struct Heap {
         size{0}
     {}
 
-    int root() {return 0;}
-    int kthChild(fast_t i, short k) {return base*i+k;}
-    int parent(fast_t i) {return (i-1)/base;}
-    int last() {return size-1;}
-    bool isLeaf(fast_t i) {return kthChild(i, 1) >= size;}
     void increaseCap() {
         if(size == cap) {
             theHeap = static_cast<Node*>(realloc(theHeap, 2*cap*sizeof(Node)));
@@ -51,21 +48,18 @@ struct Heap {
     void fixUp(fast_t i) {
         auto &wordHeapIdxMapEntry = wordHeapIdxMap.at(theHeap[i].wordIdx);
 
-        for(int p=parent(i) ;p>=0 && theHeap[p].priority < theHeap[i].priority; p=parent(i)) {
+        for(int p=i-1 ;p>=0 && theHeap[p].priority < theHeap[i].priority; --p) {
             // update exterior pointers
             std::swap(wordHeapIdxMap.at(theHeap[p].wordIdx), wordHeapIdxMapEntry);
             std::swap(theHeap[p], theHeap[i]);
-            i = p;
+            i=p;
         }
     }
 
     void insert(idx_t wordIdx) {
         increaseCap();
         theHeap[size] = Node(wordIdx, 1);
-        wordHeapIdxMap.emplace(wordIdx, size);
-        fixUp(size);
-
-        ++size;
+        wordHeapIdxMap.emplace(wordIdx, size++);
     }
     void increasePriority(fast_t wordHeapIdx) {
         ++theHeap[wordHeapIdx].priority;
@@ -78,6 +72,8 @@ struct Heap {
         fast_t curr = 0;
         for(; curr<k && curr<size; ++curr) result.emplace_back(theHeap[curr].wordIdx);
         for(; curr<k; ++curr) result.emplace_back(-1);
+        for(fast_t l=0; l<size; ++l) std::cout << theHeap[l].priority << ' ' << theHeap[l].wordIdx << std::endl;
+        std::cout << "---------------" << std::endl;
 
         return result;
     }
@@ -147,6 +143,7 @@ struct Trie {
         Node* children[numChildren];
 
         Node():
+            wordHeapIdxMap(INT8_MAX),
             heap{wordHeapIdxMap},
             children{
                 nullptr,
@@ -177,7 +174,7 @@ struct Trie {
                 nullptr,
             }
         {
-            wordHeapIdxMap.max_load_factor(3.0);
+            wordHeapIdxMap.max_load_factor(0.5);
         }
 
         Node *&getChild(short c) {
@@ -202,12 +199,8 @@ struct Trie {
 
 
         for(size_t k=0; k<word.size(); ++k) {
-            Node *&nextNode = current->getChild(word[k]); 
-            if(!nextNode) nextNode = new Node {};
-
-            nextNode->heap.insert(current->wordHeapIdxMap.at(wordIdx));
-
-            current = nextNode;
+            current = current->getChild(word[k]);
+            current->heap.increasePriority(current->wordHeapIdxMap.at(wordIdx));
         } 
     }
 
