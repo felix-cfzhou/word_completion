@@ -1,6 +1,3 @@
-#pragma GCC optimize ("O2")
-#pragma GCC optimize ("Ofast")
-
 #ifndef WORDCOMPLETION
 #define WORDCOMPLETION
 
@@ -33,32 +30,69 @@ struct Heap {
 
     std::vector<Node> theHeap;
     std::unordered_map<idx_t, fast_t> &wordHeapIdxMap;
+    std::unordered_map<fast_t, fast_t> firstPriorityOcurrenceMap;
 
     Heap(std::unordered_map<idx_t, fast_t> &wordHeapIdxMap):
         theHeap{},
-        wordHeapIdxMap{wordHeapIdxMap}
+        wordHeapIdxMap{wordHeapIdxMap},
+        firstPriorityOcurrenceMap(INT8_MAX)
     {
         theHeap.reserve(INT8_MAX);
+        firstPriorityOcurrenceMap.max_load_factor(0.5);
+    }
+
+    void swap(fast_t i, fast_t swapIdx) {
+        ++firstPriorityOcurrenceMap.at(theHeap[swapIdx].priority);
+        if(swapIdx == 0 || theHeap[swapIdx-1].priority > theHeap[i].priority) firstPriorityOcurrenceMap.emplace(theHeap[i].priority, swapIdx);
+        std::swap(theHeap[i], theHeap[swapIdx]);
+        std::swap(wordHeapIdxMap.at(theHeap[i].wordIdx), wordHeapIdxMap.at(theHeap[swapIdx].wordIdx));
     }
 
     void fixUp(fast_t i) { // FIXME
-        auto &wordHeapIdxMapEntry = wordHeapIdxMap.at(theHeap[i].wordIdx);
+        fast_t oldPriority = theHeap[i].priority;
+        fast_t newPriority = ++theHeap[i].priority;
 
-        for(int p=i-1 ;p>=0 && theHeap[p].priority < theHeap[i].priority; --p) {
-            // update exterior pointers
-            std::swap(wordHeapIdxMap.at(theHeap[p].wordIdx), wordHeapIdxMapEntry);
-            std::swap(theHeap[p], theHeap[i]);
-            i=p;
+        if(theHeap.size() == 1) {
+            firstPriorityOcurrenceMap.erase(oldPriority);
+            firstPriorityOcurrenceMap.emplace(newPriority, 0);
+        }
+        else if(i == 0) {
+            if(theHeap[1].priority == oldPriority) {
+                ++firstPriorityOcurrenceMap.at(oldPriority);
+                firstPriorityOcurrenceMap.emplace(newPriority, 0);
+            }
+            else {
+                firstPriorityOcurrenceMap.erase(oldPriority);
+                firstPriorityOcurrenceMap.emplace(newPriority, 0);
+            }
+        }
+        else if(i == static_cast<fast_t>(theHeap.size()-1)) {
+            if(newPriority <= theHeap[i-1].priority) {
+                firstPriorityOcurrenceMap.erase(oldPriority);
+                if(newPriority != theHeap[i-1].priority) firstPriorityOcurrenceMap.emplace(newPriority, theHeap.size()-1);
+            }
+            else swap(i, firstPriorityOcurrenceMap.at(theHeap[i-1].priority));
+        }
+        else {
+            fast_t leftPriority = theHeap[i-1].priority;
+            if(newPriority > leftPriority) swap(i, firstPriorityOcurrenceMap.at(leftPriority));
+            else if(newPriority == leftPriority) {
+                fast_t rightPriority = theHeap[i+1].priority;
+                if(oldPriority == rightPriority) ++firstPriorityOcurrenceMap.at(oldPriority);
+                else firstPriorityOcurrenceMap.erase(oldPriority);
+            }
+            else {
+                firstPriorityOcurrenceMap.emplace(newPriority, i);
+                if(theHeap[i+1].priority == oldPriority) ++firstPriorityOcurrenceMap.at(oldPriority);
+                else firstPriorityOcurrenceMap.erase(oldPriority);
+            }
         }
     }
 
     void insert(idx_t wordIdx) {
         wordHeapIdxMap.emplace(wordIdx, theHeap.size());
+        if(theHeap.empty() || theHeap.back().priority > 1) firstPriorityOcurrenceMap.emplace(1, theHeap.size());
         theHeap.emplace_back(wordIdx, 1);
-    }
-    void increasePriority(fast_t wordHeapIdx) {
-        ++theHeap[wordHeapIdx].priority;
-        // fixUp(wordHeapIdx);
     }
 
     std::vector<idx_t> kMost(fast_t k) {
@@ -73,7 +107,7 @@ struct Heap {
 };
 
 template<typename T, fast_t N=4096> struct FixedSizeAllocator {
-    constexpr static size_t defaultSize = 2;
+    constexpr static size_t defaultSize = 4;
 
     T** theBlocks;
     fast_t sizeBlocks;
@@ -180,12 +214,12 @@ struct Trie {
 
     void access(const std::string &word, idx_t wordIdx) {
         Node *current = theTrie;
-        current->heap.increasePriority(current->wordHeapIdxMap.at(wordIdx));
+        current->heap.fixUp(current->wordHeapIdxMap.at(wordIdx));
 
 
         for(size_t k=0; k<word.size(); ++k) {
             current = current->getChild(word[k]);
-            current->heap.increasePriority(current->wordHeapIdxMap.at(wordIdx));
+            current->heap.fixUp(current->wordHeapIdxMap.at(wordIdx));
         } 
     }
 

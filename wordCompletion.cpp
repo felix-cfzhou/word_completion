@@ -43,7 +43,7 @@ vector<vector<int>> wordCompletion::getCompletions(string w, int k) {
 // for the cs240 test scripts to run correctly. Anything that you put
 // between these lines will NOT be read by our marking scripts.
 
-#ifdef TESTING
+#ifndef TESTING
 int main() {
     wordCompletion * h = new wordCompletion();
 
