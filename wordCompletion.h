@@ -1,10 +1,10 @@
 #ifndef WORDCOMPLETION
 #define WORDCOMPLETION
 
-#include<vector>
-#include<string>
-#include<unordered_map>
-#include<iostream>
+#include <vector>
+#include <string>
+#include <unordered_map>
+#include <iostream>
 //You may add any include statements here
 
 static bool _ = [](){
@@ -40,8 +40,8 @@ template<typename T> struct Vector {
 
     void increaseCap() {
         if(theSize == theCap) {
-            theVector = static_cast<T*>(realloc(theVector, 2*theCap*sizeof(T)));
-            theCap *= 2;
+            theVector = static_cast<T*>(realloc(theVector, 3*theCap*sizeof(T)));
+            theCap *= 3;
         }
     }
 
@@ -100,7 +100,7 @@ struct Heap {
                 firstPriorityOcurrenceMap.emplace(newPriority, 0);
             }
         }
-        else if(i == static_cast<fast_t>(theHeap.size()-1)) {
+        else if(i == theHeap.size()-1) {
             if(newPriority <= theHeap[i-1].priority) {
                 firstPriorityOcurrenceMap.erase(oldPriority);
                 if(newPriority != theHeap[i-1].priority) firstPriorityOcurrenceMap.emplace(newPriority, theHeap.size()-1);
@@ -133,7 +133,7 @@ struct Heap {
         std::vector<idx_t> result;
         result.reserve(k);
         fast_t curr = 0;
-        for(; curr<k && curr<static_cast<fast_t>(theHeap.size()); ++curr) result.emplace_back(theHeap[curr].wordIdx);
+        for(; curr<k && curr<theHeap.size(); ++curr) result.emplace_back(theHeap[curr].wordIdx);
         for(; curr<k; ++curr) result.emplace_back(-1); // ensures the dimensions are correct
 
         return result;
@@ -142,7 +142,7 @@ struct Heap {
 
 template<typename T, fast_t N=4096> struct FixedSizeAllocator {
     // we allocate blocks of space for Trie Nodes for better cache performance
-    constexpr static size_t defaultSize = 4;
+    constexpr static size_t defaultSize = 512;
 
     T** theBlocks;
     fast_t sizeBlocks;
@@ -162,8 +162,8 @@ template<typename T, fast_t N=4096> struct FixedSizeAllocator {
         // give our one slot
         if(nextSlot == N) {
             if(sizeBlocks == capBlocks) {
-                theBlocks = static_cast<T**>(realloc(theBlocks, 2*capBlocks*sizeof(T*)));
-                capBlocks *= 2;
+                theBlocks = static_cast<T**>(realloc(theBlocks, 3*capBlocks*sizeof(T*)));
+                capBlocks *= 3;
             }   
             theBlocks[sizeBlocks++] = static_cast<T*>(malloc(N*sizeof(T)));
             nextSlot = 0;
