@@ -214,7 +214,7 @@ struct Trie {
                 nullptr,
             }
         {
-            wordHeapIdxMap.max_load_factor(0.5);
+            wordHeapIdxMap.max_load_factor(0.4);
         }
 
         Node *getChild(short c) {

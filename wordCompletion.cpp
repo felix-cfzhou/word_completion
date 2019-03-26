@@ -11,7 +11,7 @@ wordCompletion::wordCompletion():
     wordIdxMap(INT16_MAX),
     trie{}
 {
-    wordIdxMap.max_load_factor(0.5);
+    wordIdxMap.max_load_factor(0.3);
 }
 
 
