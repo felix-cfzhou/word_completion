@@ -71,7 +71,7 @@ struct Heap {
         wordHeapIdxMap{wordHeapIdxMap},
         firstPriorityOcurrenceMap(INT8_MAX)
     {
-        firstPriorityOcurrenceMap.max_load_factor(0.5);
+        firstPriorityOcurrenceMap.max_load_factor(0.4);
     }
 
     void swap(fast_t i, fast_t swapIdx) {
