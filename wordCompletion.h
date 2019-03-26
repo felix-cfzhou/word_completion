@@ -19,6 +19,8 @@ using idx_t = int;
 
 
 struct Heap {
+    // note this is actually a sorted array
+    // but it is easier to think of its role as a max heap
     struct Node {
         idx_t wordIdx;
         fast_t priority;
@@ -42,13 +44,15 @@ struct Heap {
     }
 
     void swap(fast_t i, fast_t swapIdx) {
+        // if fixUp ruins sortedness of array, perform this wap at most once
         ++firstPriorityOcurrenceMap.at(theHeap[swapIdx].priority);
         if(swapIdx == 0 || theHeap[swapIdx-1].priority > theHeap[i].priority) firstPriorityOcurrenceMap.emplace(theHeap[i].priority, swapIdx);
         std::swap(theHeap[i], theHeap[swapIdx]);
         std::swap(wordHeapIdxMap.at(theHeap[i].wordIdx), wordHeapIdxMap.at(theHeap[swapIdx].wordIdx));
     }
 
-    void fixUp(fast_t i) { // FIXME
+    void fixUp(fast_t i) {
+        // we keep track of all "runs" of priorities so we can update the priorities with at most one swap
         fast_t oldPriority = theHeap[i].priority;
         fast_t newPriority = ++theHeap[i].priority;
 
@@ -100,13 +104,14 @@ struct Heap {
         result.reserve(k);
         fast_t curr = 0;
         for(; curr<k && curr<static_cast<fast_t>(theHeap.size()); ++curr) result.emplace_back(theHeap[curr].wordIdx);
-        for(; curr<k; ++curr) result.emplace_back(-1);
+        for(; curr<k; ++curr) result.emplace_back(-1); // ensures the dimensions are correct
 
         return result;
     }
 };
 
 template<typename T, fast_t N=4096> struct FixedSizeAllocator {
+    // we allocate blocks of space for Trie Nodes for better cache performance
     constexpr static size_t defaultSize = 4;
 
     T** theBlocks;
@@ -124,6 +129,7 @@ template<typename T, fast_t N=4096> struct FixedSizeAllocator {
     }   
 
     T *allocate() noexcept {
+        // give our one slot
         if(nextSlot == N) {
             if(sizeBlocks == capBlocks) {
                 theBlocks = static_cast<T**>(realloc(theBlocks, 2*capBlocks*sizeof(T*)));
@@ -132,13 +138,25 @@ template<typename T, fast_t N=4096> struct FixedSizeAllocator {
             theBlocks[sizeBlocks++] = static_cast<T*>(malloc(N*sizeof(T)));
             nextSlot = 0;
         }   
+
         return &theBlocks[sizeBlocks-1][nextSlot++];
-    }   
+    }
+
+    // We do not need deallocate as we never delete a Trie Node
 
     ~FixedSizeAllocator() {
-        for (fast_t k=0; k<sizeBlocks; ++k) {
+        for (fast_t k=0; k<sizeBlocks-1; ++k) {
+            for(fast_t l=0; l<N; ++l) {
+                theBlocks[k][l].~T();
+            }
             free(theBlocks[k]);
         }
+
+        for(fast_t k=0; k<nextSlot; ++k) {
+            theBlocks[sizeBlocks-1][k].~T();
+        }
+        free(theBlocks[sizeBlocks-1]);
+    
         free(theBlocks);
     }
 };
@@ -154,18 +172,20 @@ struct Trie {
         std::unordered_map<idx_t, fast_t> wordHeapIdxMap;
         Heap heap;
         Node* children[numChildren];
+        // use raw C array for child pointers
 
         static void* operator new(size_t) {
             return pool.allocate();
         }
 
         static void operator delete(void *) noexcept {}
+        // we never delete so there is no need for operate delete overload
 
 
         Node():
             wordHeapIdxMap(INT8_MAX),
             heap{wordHeapIdxMap},
-            children{
+            children{ // explicitly construct the pointers
                 nullptr,
                 nullptr,
                 nullptr,
@@ -202,7 +222,9 @@ struct Trie {
         }
 
         ~Node() {
-            for(short k=0; k<numChildren; ++k) delete children[k];
+            // we deallocate everything using the allocator
+            // this avoids the recursive calls to the destructor
+            // for(short k=0; k<numChildren; ++k) delete children[k];
         }
     };
 
@@ -229,7 +251,9 @@ struct Trie {
 
 
         for(size_t k=0; k<word.size(); ++k) {
-            Node *&nextNode = current->children[word[k]-'a']; 
+            Node *&nextNode = current->children[word[k]-'a'];
+            // use a reference here so we can mutate it
+            // basically a pointer to a pointer
             if(!nextNode) nextNode = new Node {};
 
             nextNode->heap.insert(wordIdx);
@@ -253,12 +277,13 @@ struct Trie {
             result.emplace_back(current->heap.kMost(multiplicity));
         }
         for(; k<word.size(); ++k) result.emplace_back(multiplicity, -1);
+        // ensure dimensions match
 
         return result;
     }
 
     ~Trie() {
-        delete theTrie;
+        // delete theTrie;
     }
 };
 
