@@ -18,6 +18,37 @@ using fast_t = int_fast32_t;
 using idx_t = int;
 
 
+template<typename T> struct Vector {
+    T *theVector;
+    fast_t theSize;
+    fast_t theCap;
+
+    Vector(fast_t initialCap):
+        theVector{static_cast<T*>(malloc(initialCap*sizeof(T)))},
+        theSize{0},
+        theCap{initialCap}
+    {}
+
+    fast_t size() const {return theSize;}
+    T &operator[](fast_t idx) {return theVector[idx];}
+    template<typename ...Args> void emplace_back(Args &&...args) {
+        increaseCap();
+        theVector[theSize++] = T(std::forward<Args>(args)...);
+    }
+    T &back() {return theVector[theSize-1];}
+    bool empty() const {return !theSize;}
+
+    void increaseCap() {
+        if(theSize == theCap) {
+            theVector = static_cast<T*>(realloc(theVector, 2*theCap*sizeof(T)));
+            theCap *= 2;
+        }
+    }
+
+    ~Vector() {free(theVector);}
+};
+
+
 struct Heap {
     // note this is actually a sorted array
     // but it is easier to think of its role as a max heap
@@ -30,16 +61,15 @@ struct Heap {
         {}
     };
 
-    std::vector<Node> theHeap;
+    Vector<Node> theHeap;
     std::unordered_map<idx_t, fast_t> &wordHeapIdxMap;
     std::unordered_map<fast_t, fast_t> firstPriorityOcurrenceMap;
 
     Heap(std::unordered_map<idx_t, fast_t> &wordHeapIdxMap):
-        theHeap{},
+        theHeap{INT8_MAX},
         wordHeapIdxMap{wordHeapIdxMap},
         firstPriorityOcurrenceMap(INT8_MAX)
     {
-        theHeap.reserve(INT8_MAX);
         firstPriorityOcurrenceMap.max_load_factor(0.5);
     }
 
