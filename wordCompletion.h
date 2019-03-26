@@ -31,6 +31,7 @@ template<typename T> struct Vector {
 
     fast_t size() const {return theSize;}
     T &operator[](fast_t idx) {return theVector[idx];}
+    const T &operator[](fast_t idx) const {return theVector[idx];}
     template<typename ...Args> void emplace_back(Args &&...args) {
         increaseCap();
         theVector[theSize++] = T(std::forward<Args>(args)...);
@@ -129,7 +130,7 @@ struct Heap {
         theHeap.emplace_back(wordIdx, 1);
     }
 
-    std::vector<idx_t> kMost(fast_t k) {
+    std::vector<idx_t> kMost(fast_t k) const {
         std::vector<idx_t> result;
         result.reserve(k);
         fast_t curr = 0;
@@ -247,7 +248,7 @@ struct Trie {
             wordHeapIdxMap.max_load_factor(0.4);
         }
 
-        Node *getChild(short c) {
+        Node *getChild(short c) const {
             return children[c-'a'];
         }
 
@@ -330,7 +331,8 @@ class wordCompletion{
 
     int access(std::string s);
 
-    std::vector<std::vector<int> > getCompletions(std::string w, int k);
+    std::vector<std::vector<int>> getCompletions(std::string w, int k);
     //DO NOT CHANGE THE PROVIDED INTERFACE ABOVE
 };
+
 #endif
