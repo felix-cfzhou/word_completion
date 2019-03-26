@@ -1,4 +1,4 @@
-#pragma GCC optimize ("O2")
+#pragma GCC optimize ("O3")
 #pragma GCC optimize ("Ofast")
 
 #include "wordCompletion.h"
