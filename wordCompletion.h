@@ -255,12 +255,6 @@ struct Trie {
         Node *getChild(short c) const {
             return children[c-'a'];
         }
-
-        ~Node() {
-            // we deallocate everything using the allocator
-            // this avoids the recursive calls to the destructor
-            // for(short k=0; k<numChildren; ++k) delete children[k];
-        }
     };
 
     Node* theTrie;
@@ -318,10 +312,6 @@ struct Trie {
         // ensure dimensions match
 
         return result;
-    }
-
-    ~Trie() {
-        // delete theTrie;
     }
 };
 
