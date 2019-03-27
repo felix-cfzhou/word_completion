@@ -114,8 +114,7 @@ struct Heap {
             fast_t leftPriority = theHeap[i-1].priority;
             if(newPriority > leftPriority) swap(i, firstPriorityOcurrenceMap.at(leftPriority));
             else if(newPriority == leftPriority) {
-                fast_t rightPriority = theHeap[i+1].priority;
-                if(oldPriority == rightPriority) ++firstPriorityOcurrenceMap.at(oldPriority);
+                if(oldPriority == theHeap[i+1].priority) ++firstPriorityOcurrenceMap.at(oldPriority);
                 else firstPriorityOcurrenceMap.erase(oldPriority);
             }
             else {
