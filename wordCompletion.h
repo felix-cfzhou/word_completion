@@ -84,10 +84,12 @@ struct Heap {
 
     void fixUp(fast_t i) {
         // we keep track of all "runs" of priorities so we can update the priorities with at most one swap
-        fast_t oldPriority = theHeap[i].priority;
-        fast_t newPriority = ++theHeap[i].priority;
+        const fast_t oldPriority = theHeap[i].priority;
+        const fast_t newPriority = ++theHeap[i].priority;
 
-        if(theHeap.size() == 1) {
+        const fast_t heapSize = theHeap.size();
+
+        if(heapSize == 1) {
             firstPriorityOcurrenceMap.erase(oldPriority);
             firstPriorityOcurrenceMap.emplace(newPriority, 0);
         }
@@ -101,10 +103,10 @@ struct Heap {
                 firstPriorityOcurrenceMap.emplace(newPriority, 0);
             }
         }
-        else if(i == theHeap.size()-1) {
+        else if(i == heapSize-1) {
             if(newPriority <= theHeap[i-1].priority) {
                 firstPriorityOcurrenceMap.erase(oldPriority);
-                if(newPriority != theHeap[i-1].priority) firstPriorityOcurrenceMap.emplace(newPriority, theHeap.size()-1);
+                if(newPriority != theHeap[i-1].priority) firstPriorityOcurrenceMap.emplace(newPriority, heapSize-1);
             }
             else swap(i, firstPriorityOcurrenceMap.at(theHeap[i-1].priority));
         }
@@ -134,7 +136,9 @@ struct Heap {
         std::vector<idx_t> result;
         result.reserve(k);
         fast_t curr = 0;
-        for(; curr<k && curr<theHeap.size(); ++curr) result.emplace_back(theHeap[curr].wordIdx);
+
+        const fast_t lim = std::min(k, theHeap.size());
+        for(; curr<lim; ++curr) result.emplace_back(theHeap[curr].wordIdx);
         for(; curr<k; ++curr) result.emplace_back(-1); // ensures the dimensions are correct
 
         return result;
@@ -269,8 +273,9 @@ struct Trie {
         Node *current = theTrie;
         current->heap.fixUp(current->wordHeapIdxMap.at(wordIdx));
 
+        const size_t wordSize = word.size();
 
-        for(size_t k=0; k<word.size(); ++k) {
+        for(size_t k=0; k<wordSize; ++k) {
             current = current->getChild(word[k]);
             current->heap.fixUp(current->wordHeapIdxMap.at(wordIdx));
         } 
@@ -280,8 +285,9 @@ struct Trie {
         Node *current = theTrie;
         current->heap.insert(wordIdx);
 
+        const size_t wordSize = word.size();
 
-        for(size_t k=0; k<word.size(); ++k) {
+        for(size_t k=0; k<wordSize; ++k) {
             Node *&nextNode = current->children[word[k]-'a'];
             // use a reference here so we can mutate it
             // basically a pointer to a pointer
@@ -295,19 +301,20 @@ struct Trie {
 
     std::vector<std::vector<idx_t>> getCompletionIdx(const std::string &word, fast_t multiplicity) {
         std::vector<std::vector<idx_t>> result;
-        result.reserve(word.size() + 1);
+        const size_t wordSize = word.size();
+        result.reserve(wordSize + 1);
 
         Node *current = theTrie;
         result.emplace_back(current->heap.kMost(multiplicity));
 
         size_t k = 0;
-        for(; k<word.size(); ++k) {
+        for(; k<wordSize; ++k) {
             current = current->getChild(word[k]);
             if(!current) break;
 
             result.emplace_back(current->heap.kMost(multiplicity));
         }
-        for(; k<word.size(); ++k) result.emplace_back(multiplicity, -1);
+        for(; k<wordSize; ++k) result.emplace_back(multiplicity, -1);
         // ensure dimensions match
 
         return result;
