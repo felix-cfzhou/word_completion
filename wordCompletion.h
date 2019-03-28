@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <iostream>
 //You may add any include statements here
@@ -262,7 +263,7 @@ struct Trie {
         theTrie{new Node {}}
     {}
 
-    void access(const std::string &word, idx_t wordIdx) {
+    void access(std::string_view word, idx_t wordIdx) {
         Node *current = theTrie;
         current->heap.fixUp(current->wordHeapIdxMap.at(wordIdx));
 
@@ -274,7 +275,7 @@ struct Trie {
         } 
     }
 
-    void insert(const std::string &word, idx_t wordIdx) {
+    void insert(std::string_view word, idx_t wordIdx) {
         Node *current = theTrie;
         current->heap.insert(wordIdx);
 
@@ -292,7 +293,7 @@ struct Trie {
         } 
     }
 
-    std::vector<std::vector<idx_t>> getCompletionIdx(const std::string &word, fast_t multiplicity) {
+    std::vector<std::vector<idx_t>> getCompletionIdx(std::string_view word, fast_t multiplicity) {
         std::vector<std::vector<idx_t>> result;
         const size_t wordSize = word.size();
         result.reserve(wordSize + 1);
@@ -317,6 +318,7 @@ struct Trie {
 
 class wordCompletion{
     //You may add any private members you like here
+    std::vector<std::string> dictionary;
     std::unordered_map<std::string, idx_t> wordIdxMap;
     Trie trie;
 
