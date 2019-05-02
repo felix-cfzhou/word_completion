@@ -20,13 +20,21 @@ struct Heap {
     };
 
     Vector<Node> theHeap;
-    std::unordered_map<idx_t, fast_t> &wordHeapIdxMap;
+    std::unordered_map<idx_t, fast_t> wordHeapIdxMap;
     std::unordered_map<fast_t, fast_t> firstPriorityOcurrenceMap;
 
-    Heap(std::unordered_map<idx_t, fast_t> &wordHeapIdxMap):
+    Heap():
         theHeap{INT8_MAX},
-        wordHeapIdxMap{wordHeapIdxMap},
+        wordHeapIdxMap{INT8_MAX},
         firstPriorityOcurrenceMap(INT8_MAX)
+    {
+        firstPriorityOcurrenceMap.max_load_factor(0.4);
+    }
+
+    Heap(const Heap &other):
+        theHeap{other.theHeap},
+        wordHeapIdxMap{other.wordHeapIdxMap},
+        firstPriorityOcurrenceMap(other.firstPriorityOcurrenceMap)
     {
         firstPriorityOcurrenceMap.max_load_factor(0.4);
     }

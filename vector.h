@@ -2,6 +2,7 @@
 #define VECTOR
 
 #include <cstdlib>
+#include <cstring>
 #include <utility>
 
 #include "types.h"
@@ -17,6 +18,13 @@ template<typename T> struct Vector {
         theSize{0},
         theCap{initialCap}
     {}
+    Vector(const Vector &other):
+        theVector{static_cast<T*>(malloc(other.theCap*sizeof(T)))},
+        theSize{other.theSize},
+        theCap{other.theCap}
+    {
+        memcpy(theVector, other.theVector, other.theSize*sizeof(T));
+    }
 
     fast_t size() const {return theSize;}
     T &operator[](fast_t idx) {return theVector[idx];}

@@ -73,7 +73,9 @@ def main():
         if id != model_id:
             raise Exception("Bad result of access, expected " + model_id)
         count += 1
-        print(token, k, sz1, sz2, len(completions[-1]), count)
+        if count % 1000 == 0:
+            print(count)
+        # print(token, k, sz1, sz2, len(completions[-1]), count)
     print("PASSED!")
 
 if __name__ == "__main__":

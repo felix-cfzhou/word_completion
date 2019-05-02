@@ -19,10 +19,12 @@ int main(int, char **argv) {
     while (word_file >> token) {
         const auto benchmark_start = get_time();
         const auto &result = dict.getCompletions(token, k);
-        const auto &id = dict.access(token);
+        const auto &id =
+            dict.access(token);
         const auto benchmark_end = get_time();
         count++;
         running += std::chrono::nanoseconds(benchmark_end - benchmark_start).count();
+        
         std::cout << token << " " << k << std::endl;
         std::cout << id << std::endl;
         std::cout << result.size() << " " << result[0].size() << std::endl;
@@ -33,6 +35,7 @@ int main(int, char **argv) {
             }
             std::cout << std::endl;
         }
+       
     }
     std::cout << "[END] " << static_cast<long long>(running / count) << std::endl;
 }

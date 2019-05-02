@@ -11,7 +11,7 @@ struct Trie {
 
         static FixedSizeAllocator<Node> pool;
 
-        std::unordered_map<idx_t, fast_t> wordHeapIdxMap;
+        std::string key;
         Heap heap;
         Node* children[numChildren];
         // use raw C array for child pointers
@@ -23,10 +23,9 @@ struct Trie {
         static void operator delete(void *) noexcept {}
         // we never delete so there is no need for operate delete overload
 
-
-        Node():
-            wordHeapIdxMap(INT8_MAX),
-            heap{wordHeapIdxMap},
+        Node(std::string key):
+            key{std::move(key)},
+            heap{},
             children{ // explicitly construct the pointers
                 nullptr,
                 nullptr,
@@ -55,9 +54,40 @@ struct Trie {
                 nullptr,
                 nullptr,
             }
-        {
-            wordHeapIdxMap.max_load_factor(0.4);
-        }
+        {}
+
+        Node(std::string key, const Node &other):
+            key{std::move(key)},
+            heap{other.heap},
+            children{ // explicitly construct the pointers
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr,
+            }
+        {}
 
         Node *getChild(short c) const {
             return children[c-'a'];
@@ -67,58 +97,13 @@ struct Trie {
     Node* theTrie;
 
     Trie():
-        theTrie{new Node {}}
+        theTrie{new Node {""}}
     {}
 
-    void access(std::string_view word, idx_t wordIdx) {
-        Node *current = theTrie;
-        current->heap.fixUp(current->wordHeapIdxMap.at(wordIdx));
+    void access(std::string_view, idx_t wordIdx);
 
-        const size_t wordSize = word.size();
+    void insert(std::string_view, idx_t wordIdx);
 
-        for(size_t k=0; k<wordSize; ++k) {
-            current = current->getChild(word[k]);
-            current->heap.fixUp(current->wordHeapIdxMap.at(wordIdx));
-        } 
-    }
-
-    void insert(std::string_view word, idx_t wordIdx) {
-        Node *current = theTrie;
-        current->heap.insert(wordIdx);
-
-        const size_t wordSize = word.size();
-
-        for(size_t k=0; k<wordSize; ++k) {
-            Node *&nextNode = current->children[word[k]-'a'];
-            // use a reference here so we can mutate it
-            // basically a pointer to a pointer
-            if(!nextNode) nextNode = new Node {};
-
-            nextNode->heap.insert(wordIdx);
-
-            current = nextNode;
-        } 
-    }
-
-    std::vector<std::vector<idx_t>> getCompletionIdx(std::string_view word, fast_t multiplicity) {
-        std::vector<std::vector<idx_t>> result;
-        const size_t wordSize = word.size();
-        result.reserve(wordSize + 1);
-
-        Node *current = theTrie;
-        result.emplace_back(current->heap.kMost(multiplicity));
-
-        size_t k = 0;
-        for(; k<wordSize; ++k) {
-            current = current->getChild(word[k]);
-            if(!current) break;
-
-            result.emplace_back(current->heap.kMost(multiplicity));
-        }
-        for(; k<wordSize; ++k) result.emplace_back(multiplicity, -1);
-        // ensure dimensions match
-
-        return result;
-    }
+    std::vector<std::vector<idx_t>> getCompletionIdx(std::string_view word, fast_t multiplicity) const;
 };
 #endif
