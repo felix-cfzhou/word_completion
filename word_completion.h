@@ -5,16 +5,16 @@
 
 
 class WordCompletion{
-    std::vector<std::string> dictionary;
+    size_t size;
     Trie trie;
 
     public:
     WordCompletion();
     idx_t find(std::string_view s) const;
 
-    idx_t access(std::string s);
+    idx_t access(std::string_view s);
 
-    std::vector<std::vector<idx_t>> getCompletions(std::string w, int k);
+    std::vector<std::vector<idx_t>> getCompletions(std::string_view w, int k);
 };
 
 #endif
