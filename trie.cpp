@@ -158,7 +158,7 @@ void Trie::insert(std::string_view word, idx_t wordIdx) {
 
                 current = new Node {current->key.substr(0, l), wordIdx, *current};
                 current->heap.insert(wordIdx);
-                grandChild->key = grandChild->key.substr(l);
+                grandChild->key.erase(0, l);
                 current->children[grandChild->key.front() - 'a'] = grandChild;
 
                 // std::cout << "word short" << std::endl;
@@ -171,7 +171,7 @@ void Trie::insert(std::string_view word, idx_t wordIdx) {
 
                 current = new Node{current->key.substr(0, l), -1, *current};
                 current->heap.insert(wordIdx);
-                origGrandChild->key = origGrandChild->key.substr(l);
+                origGrandChild->key.erase(0, l);
                 current->children[origGrandChild->key.front() - 'a'] = origGrandChild;
                 current->children[newGrandChild->key.front() - 'a'] = newGrandChild;
 
