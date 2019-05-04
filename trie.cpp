@@ -4,6 +4,28 @@
 #include "trie.h"
 
 
+Trie::FindResult Trie::find(std::string_view word) const {
+    std::vector<Node *> path {theTrie};
+    Node *current = theTrie;
+
+    const size_t wordSize = word.size();
+    for(size_t k=0; k<wordSize;) {
+        current = current->getChild(word[k]);
+        if(!current) break;
+        path.emplace_back(current);
+
+        const size_t keySize = current->key.size();
+        for(size_t l=0; l<keySize; ++l, ++k) {
+            if(k==wordSize)return {FindResult::Indicator::END_OF_NEEDLE, std::move(path), k, l};
+            else if(word[k]!=current->key[l]) return {FindResult::Indicator::END_OF_TRIE, std::move(path), k, l};
+        }
+
+        if(k == wordSize) return {FindResult::Indicator::FOUND, std::move(path), k, 0};
+    } 
+
+    return {FindResult::Indicator::END_OF_TRIE, std::move(path), 0, 0};
+}
+
 void Trie::access(std::string_view word, idx_t wordIdx) {
     // std::cout << "accessing: " << word << std::endl;
     Node *current = theTrie;
@@ -44,7 +66,7 @@ void Trie::insert(std::string_view word, idx_t wordIdx) {
     for(size_t k=0; k<wordSize;) {
         Node *&current = parent->children[word[k] - 'a'];
         if(!current) {
-            current = new Node{std::string(word.substr(k))};
+            current = new Node{std::string(word.substr(k)), wordIdx};
             // std::cout << parent->key << std::endl;
             // std::cout << parent->getChild(word[k])->key << std::endl;
             current->heap.insert(wordIdx);
@@ -57,7 +79,7 @@ void Trie::insert(std::string_view word, idx_t wordIdx) {
             if(k == wordSize) {
                 Node *grandChild = current;
 
-                current = new Node {current->key.substr(0, l), *current};
+                current = new Node {current->key.substr(0, l), wordIdx, *current};
                 current->heap.insert(wordIdx);
                 grandChild->key = grandChild->key.substr(l);
                 current->children[grandChild->key.front() - 'a'] = grandChild;
@@ -67,10 +89,10 @@ void Trie::insert(std::string_view word, idx_t wordIdx) {
             }
             else if(word[k] != current->key[l]) {
                 Node *origGrandChild = current;
-                Node *newGrandChild = new Node{std::string(word.substr(k))};
+                Node *newGrandChild = new Node{std::string(word.substr(k)), wordIdx};
                 newGrandChild->heap.insert(wordIdx);
 
-                current = new Node{current->key.substr(0, l), *current};
+                current = new Node{current->key.substr(0, l), -1, *current};
                 current->heap.insert(wordIdx);
                 origGrandChild->key = origGrandChild->key.substr(l);
                 current->children[origGrandChild->key.front() - 'a'] = origGrandChild;
@@ -90,6 +112,7 @@ void Trie::insert(std::string_view word, idx_t wordIdx) {
 
         current->heap.insert(wordIdx);
         parent = current;
+        if(k == wordSize) /*assert(current->idx == -1),*/ current->idx = wordIdx;
     } 
 
     ENDINSERT:
