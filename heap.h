@@ -7,7 +7,7 @@
 #include "vector.h"
 
 
-struct Heap {
+class Heap {
     // note this is actually a sorted array
     // but it is easier to think of its role as a max heap
     struct Node {
@@ -23,6 +23,9 @@ struct Heap {
     std::unordered_map<idx_t, fast_t> wordHeapIdxMap;
     std::unordered_map<fast_t, fast_t> firstPriorityOcurrenceMap;
 
+    void swap(fast_t i, fast_t swapIdx);
+
+    public:
     Heap():
         theHeap{INT8_MAX},
         wordHeapIdxMap{INT8_MAX},
@@ -39,9 +42,7 @@ struct Heap {
         firstPriorityOcurrenceMap.max_load_factor(0.4);
     }
 
-    void swap(fast_t i, fast_t swapIdx);
-
-    void fixUp(fast_t i);
+    void fixUp(idx_t wordIdx);
 
     void insert(idx_t wordIdx);
 

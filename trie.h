@@ -5,7 +5,7 @@
 #include "heap.h"
 
 
-struct Trie {
+class Trie {
     struct Node {
         constexpr static short numChildren = 26;
 
@@ -97,6 +97,9 @@ struct Trie {
         }
     };
 
+    Node* theTrie;
+
+    public:
     struct FindResult {
         enum class Indicator {
             FOUND = 0,
@@ -117,8 +120,6 @@ struct Trie {
             keyCharIdx{keyCharIdx}
         {}
     };
-
-    Node* theTrie;
 
     Trie():
         theTrie{new Node {"", -1}}

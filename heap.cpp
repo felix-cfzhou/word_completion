@@ -9,8 +9,9 @@ void Heap::swap(fast_t i, fast_t swapIdx) {
     std::swap(wordHeapIdxMap.at(theHeap[i].wordIdx), wordHeapIdxMap.at(theHeap[swapIdx].wordIdx));
 }
 
-void Heap::fixUp(fast_t i) {
+void Heap::fixUp(idx_t wordIdx) {
     // we keep track of all "runs" of priorities so we can update the priorities with at most one swap
+    const fast_t i = wordHeapIdxMap.at(wordIdx);
     const fast_t oldPriority = theHeap[i].priority;
     const fast_t newPriority = ++theHeap[i].priority;
 

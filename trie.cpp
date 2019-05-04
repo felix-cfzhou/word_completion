@@ -29,19 +29,20 @@ Trie::FindResult Trie::find(std::string_view word) const {
 void Trie::access(std::string_view word, idx_t wordIdx) {
     // std::cout << "accessing: " << word << std::endl;
     Node *current = theTrie;
-    current->heap.fixUp(current->heap.wordHeapIdxMap.at(wordIdx));
+    current->heap.fixUp(wordIdx);
 
     const size_t wordSize = word.size();
     for(size_t k=0; k<wordSize;) {
         // std::cout << current->key << ':' << std::endl;
         // for(auto child : current->children) if(child) std::cout << child->key << std::endl;
         current = current->getChild(word[k]);
-        current->heap.fixUp(current->heap.wordHeapIdxMap.at(wordIdx));
+        current->heap.fixUp(wordIdx);
 
         k += current->key.size();
     } 
 }
 
+/*
 void displayTrie(Trie::Node *trie, size_t indent=0) {
     for(size_t count=0; count < indent; ++count) std::cout << "  ";
     std::cout << trie->key << ": ";
@@ -55,6 +56,7 @@ void displayTrie(Trie::Node *trie, size_t indent=0) {
         if(child) displayTrie(child, indent+1);
     }
 }
+*/
 
 void Trie::insert(std::string_view word, idx_t wordIdx) {
     // std::cout << "inserting: " << word << std::endl;

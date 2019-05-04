@@ -8,11 +8,19 @@
 #include "types.h"
 
 
-template<typename T> struct Vector {
+template<typename T> class Vector {
     T *theVector;
     fast_t theSize;
     fast_t theCap;
 
+    void increaseCap() {
+        if(theSize == theCap) {
+            theVector = static_cast<T*>(realloc(theVector, 3*theCap*sizeof(T)));
+            theCap *= 3;
+        }
+    }
+
+    public:
     Vector(fast_t initialCap):
         theVector{static_cast<T*>(malloc(initialCap*sizeof(T)))},
         theSize{0},
@@ -35,13 +43,6 @@ template<typename T> struct Vector {
     }
     T &back() {return theVector[theSize-1];}
     bool empty() const {return !theSize;}
-
-    void increaseCap() {
-        if(theSize == theCap) {
-            theVector = static_cast<T*>(realloc(theVector, 3*theCap*sizeof(T)));
-            theCap *= 3;
-        }
-    }
 
     ~Vector() {free(theVector);}
 };
