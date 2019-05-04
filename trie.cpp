@@ -4,6 +4,74 @@
 #include "trie.h"
 
 
+Trie::Node::Node(std::string key, idx_t idx):
+    key{std::move(key)},
+    idx{idx},
+    heap{},
+    children{ // explicitly construct the pointers
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+    }
+{}
+
+Trie::Node::Node(std::string key, idx_t idx, const Node &other):
+    key{std::move(key)},
+    idx{idx},
+    heap{other.heap},
+    children{ // explicitly construct the pointers
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+    }
+{}
+
 Trie::FindResult Trie::find(std::string_view word) const {
     std::vector<Node *> path {theTrie};
     Node *current = theTrie;
@@ -16,11 +84,14 @@ Trie::FindResult Trie::find(std::string_view word) const {
 
         const size_t keySize = current->key.size();
         for(size_t l=0; l<keySize; ++l, ++k) {
-            if(k==wordSize)return {FindResult::Indicator::END_OF_NEEDLE, std::move(path), k, l};
-            else if(word[k]!=current->key[l]) return {FindResult::Indicator::END_OF_TRIE, std::move(path), k, l};
+            if(k == wordSize)return {FindResult::Indicator::END_OF_NEEDLE, std::move(path), k, l};
+            else if(word[k] != current->key[l]) return {FindResult::Indicator::END_OF_TRIE, std::move(path), k, l};
         }
 
-        if(k == wordSize) return {FindResult::Indicator::FOUND, std::move(path), k, 0};
+        if(k == wordSize) {
+            if(current->idx < 0) return {FindResult::Indicator::SPLIT, std::move(path), k, 0};
+            else return {FindResult::Indicator::FOUND, std::move(path), k, 0};
+        }
     } 
 
     return {FindResult::Indicator::END_OF_TRIE, std::move(path), 0, 0};
@@ -40,6 +111,10 @@ void Trie::access(std::string_view word, idx_t wordIdx) {
 
         k += current->key.size();
     } 
+}
+
+void Trie::access(const FindResult::Path &path, idx_t wordIdx) {
+    for(auto nodePtr : path) nodePtr->heap.fixUp(wordIdx);
 }
 
 /*

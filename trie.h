@@ -24,73 +24,10 @@ class Trie {
         static void operator delete(void *) noexcept {}
         // we never delete so there is no need for operate delete overload
 
-        Node(std::string key, idx_t idx):
-            key{std::move(key)},
-            idx{idx},
-            heap{},
-            children{ // explicitly construct the pointers
-                nullptr,
-                nullptr,
-                nullptr,
-                nullptr,
-                nullptr,
-                nullptr,
-                nullptr,
-                nullptr,
-                nullptr,
-                nullptr,
-                nullptr,
-                nullptr,
-                nullptr,
-                nullptr,
-                nullptr,
-                nullptr,
-                nullptr,
-                nullptr,
-                nullptr,
-                nullptr,
-                nullptr,
-                nullptr,
-                nullptr,
-                nullptr,
-                nullptr,
-                nullptr,
-            }
-        {}
+        Node(std::string key, idx_t idx);
+        Node(std::string key, idx_t idx, const Node &other);
 
-        Node(std::string key, idx_t idx, const Node &other):
-            key{std::move(key)},
-            idx{idx},
-            heap{other.heap},
-            children{ // explicitly construct the pointers
-                nullptr,
-                nullptr,
-                nullptr,
-                nullptr,
-                nullptr,
-                nullptr,
-                nullptr,
-                nullptr,
-                nullptr,
-                nullptr,
-                nullptr,
-                nullptr,
-                nullptr,
-                nullptr,
-                nullptr,
-                nullptr,
-                nullptr,
-                nullptr,
-                nullptr,
-                nullptr,
-                nullptr,
-                nullptr,
-                nullptr,
-                nullptr,
-                nullptr,
-                nullptr,
-            }
-        {}
+        Node(const Node &other) = delete;
 
         Node *getChild(short c) const {
             return children[c-'a'];
@@ -101,6 +38,8 @@ class Trie {
 
     public:
     struct FindResult {
+        using Path = std::vector<Node *>;
+
         enum class Indicator {
             FOUND = 0,
             END_OF_TRIE,
@@ -109,13 +48,13 @@ class Trie {
         };
 
         const Indicator indicator;
-        const std::vector<Node *> path;
+        const Path path;
         const size_t needleCharIdx;
         const size_t keyCharIdx;
 
         FindResult(Indicator indicator, std::vector<Node *> path, size_t needleCharIdx, size_t keyCharIdx):
             indicator{indicator},
-            path{path},
+            path{std::move(path)},
             needleCharIdx{needleCharIdx},
             keyCharIdx{keyCharIdx}
         {}
@@ -128,6 +67,7 @@ class Trie {
     FindResult find(std::string_view) const;
 
     void access(std::string_view, idx_t wordIdx);
+    void access(const FindResult::Path &path, idx_t wordIdx);
 
     void insert(std::string_view, idx_t wordIdx);
 

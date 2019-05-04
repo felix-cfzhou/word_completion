@@ -24,7 +24,6 @@ int main(int, char **argv) {
         const auto benchmark_end = get_time();
         count++;
         running += std::chrono::nanoseconds(benchmark_end - benchmark_start).count();
-        
         std::cout << token << " " << k << std::endl;
         std::cout << id << std::endl;
         std::cout << result.size() << " " << result[0].size() << std::endl;
@@ -35,7 +34,6 @@ int main(int, char **argv) {
             }
             std::cout << std::endl;
         }
-       
     }
     std::cout << "[END] " << static_cast<long long>(running / count) << std::endl;
 }

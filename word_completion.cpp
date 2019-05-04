@@ -21,8 +21,8 @@ idx_t WordCompletion::access(string w) {
     // pre: w is a non-empty word with characters in {a..z}
     // post: w is added to structure if not previous in; its frequency is increased by 1
     // 	returns ID of word w
-    const auto it = find(w);
-    if(it == -1) {
+    const auto find_result = trie.find(w);
+    if(find_result.indicator != Trie::FindResult::Indicator::FOUND) {
         idx_t idx = dictionary.size();
         dictionary.emplace_back(std::move(w));
 
@@ -31,8 +31,9 @@ idx_t WordCompletion::access(string w) {
         return idx;
     }
 
-    trie.access(w, it);
-    return it;
+    const idx_t wordIdx = find_result.path.back()->idx;
+    trie.access(find_result.path, wordIdx);
+    return wordIdx;
 }	
 
 vector<vector<idx_t>> WordCompletion::getCompletions(string w, int k) {
