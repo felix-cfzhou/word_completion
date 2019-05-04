@@ -1,4 +1,4 @@
-#include "wordCompletion.h"
+#include "word_completion.h"
 #include <chrono>
 #include <cstdlib>
 #include <fstream>
@@ -8,7 +8,7 @@
 inline auto get_time() { return std::chrono::high_resolution_clock::now(); }
 
 int main(int, char **argv) {
-    wordCompletion dict;
+    WordCompletion dict;
     const std::string file_name{argv[1]};
     const int k = 16;
 
