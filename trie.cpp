@@ -78,7 +78,7 @@ Trie::FindResult Trie::find(std::string_view word) const {
 
     const size_t wordSize = word.size();
     for(size_t k=0; k<wordSize;) {
-        current = current->getChild(word[k]);
+        current = (*current)[word[k]];
         if(!current) return {FindResult::Indicator::END_OF_TRIE, std::move(path), k, 0};
         path.emplace_back(current);
 
@@ -106,7 +106,7 @@ void Trie::access(std::string_view word, idx_t wordIdx) {
     for(size_t k=0; k<wordSize;) {
         // std::cout << current->key << ':' << std::endl;
         // for(auto child : current->children) if(child) std::cout << child->key << std::endl;
-        current = current->getChild(word[k]);
+        current = (*current)[word[k]];
         current->heap.fixUp(wordIdx);
 
         k += current->key.size();
@@ -139,7 +139,7 @@ void Trie::insert(std::string_view word, idx_t wordIdx) {
 
     const size_t wordSize = word.size();
     for(size_t k=0; k<wordSize;) {
-        Node *&current = parent->children[word[k] - 'a'];
+        Node *&current = (*parent)[word[k]];
         if(!current) {
             current = new Node{std::string(word.substr(k)), wordIdx};
             // std::cout << parent->key << std::endl;
@@ -157,7 +157,7 @@ void Trie::insert(std::string_view word, idx_t wordIdx) {
                 current = new Node {current->key.substr(0, l), wordIdx, *current};
                 current->heap.insert(wordIdx);
                 grandChild->key.erase(0, l);
-                current->children[grandChild->key.front() - 'a'] = grandChild;
+                (*current)[grandChild->key.front()] = grandChild;
 
                 // std::cout << "word short" << std::endl;
                 goto ENDINSERT;
@@ -170,8 +170,8 @@ void Trie::insert(std::string_view word, idx_t wordIdx) {
                 current = new Node{current->key.substr(0, l), -1, *current};
                 current->heap.insert(wordIdx);
                 origGrandChild->key.erase(0, l);
-                current->children[origGrandChild->key.front() - 'a'] = origGrandChild;
-                current->children[newGrandChild->key.front() - 'a'] = newGrandChild;
+                (*current)[origGrandChild->key.front()] = origGrandChild;
+                (*current)[newGrandChild->key.front()] = newGrandChild;
 
                 /*
                 std::cout << parent->key << std::endl;
@@ -207,7 +207,7 @@ void Trie::insert(const Trie::FindResult &findResult, std::string_view word, idx
         case FindResult::Indicator::END_OF_TRIE:
             {
                 last->heap.insert(wordIdx);
-                auto &child = last->children[word[findResult.needleCharIdx] - 'a'];
+                auto &child = (*last)[word[findResult.needleCharIdx]];
                 child = new Node{std::string(word.substr(findResult.needleCharIdx)), wordIdx};
                 child->heap.insert(wordIdx);
             }
@@ -216,10 +216,10 @@ void Trie::insert(const Trie::FindResult &findResult, std::string_view word, idx
             {
                 Node &parent = *path[path.size()-2];
                 Node *child = new Node {last->key.substr(0, findResult.keyCharIdx), wordIdx, *last};
-                parent.children[child->key.front() - 'a'] = child;
+                parent[child->key.front()] = child;
                 child->heap.insert(wordIdx);
                 last->key.erase(0, findResult.keyCharIdx);
-                child->children[last->key.front() - 'a'] = last;
+                (*child)[last->key.front()] = last;
             }
             break;
         case FindResult::Indicator::SPLIT:
@@ -228,11 +228,11 @@ void Trie::insert(const Trie::FindResult &findResult, std::string_view word, idx
                 Node *newGrandChild = new Node{std::string(word.substr(findResult.needleCharIdx)), wordIdx};
                 newGrandChild->heap.insert(wordIdx);
                 Node *child = new Node{last->key.substr(0, findResult.keyCharIdx), -1, *last};
-                parent.children[child->key.front() - 'a'] = child;
+                parent[child->key.front()] = child;
                 child->heap.insert(wordIdx);
                 last->key.erase(0, findResult.keyCharIdx);
-                child->children[last->key.front() - 'a'] = last;
-                child->children[newGrandChild->key.front() - 'a'] = newGrandChild;
+                (*child)[last->key.front()] = last;
+                (*child)[newGrandChild->key.front()] = newGrandChild;
             }
             break;
         case FindResult::Indicator::FOUND_SPLIT:
@@ -256,7 +256,7 @@ std::vector<std::vector<idx_t>> Trie::getCompletionIdx(std::string_view word, fa
     result.emplace_back(current->heap.kMost(multiplicity));
 
     for(size_t idx=0; idx<wordSize;) {
-        current = current->getChild(word[idx]);
+        current = (*current)[word[idx]];
         if(!current) break;
 
         const auto temp = current->heap.kMost(multiplicity);

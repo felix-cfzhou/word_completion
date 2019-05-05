@@ -7,7 +7,7 @@
 
 class Trie {
     struct Node {
-        constexpr static short numChildren = 26;
+        constexpr static short numChildren = 128;
 
         static FixedSizeAllocator<Node> pool;
 
@@ -29,8 +29,8 @@ class Trie {
 
         Node(const Node &other) = delete;
 
-        Node *getChild(short c) const {
-            return children[c-'a'];
+        Node *&operator[](short c) {
+            return children[c];
         }
     };
 
