@@ -1,6 +1,8 @@
 #ifndef TRIE
 #define TRIE
 
+#include <shared_mutex>
+
 #include "fixed_size_allocator.h"
 #include "heap.h"
 
@@ -35,6 +37,7 @@ class Trie {
     };
 
     Node* theTrie;
+    mutable std::shared_mutex theMutex;
 
     void displayTrie(Node *, size_t) const;
 
@@ -67,11 +70,13 @@ class Trie {
         theTrie{new Node {"", -1}}
     {}
 
-    FindResult find(std::string_view) const;
+    const FindResult find(std::string_view) const;
 
+    [[ deprecated ]]
     void access(std::string_view, idx_t wordIdx);
     void access(const FindResult &findResult, idx_t wordIdx);
 
+    [[ deprecated ]]
     void insert(std::string_view, idx_t wordIdx);
     void insert(const FindResult &findResult, std::string_view word, idx_t wordIdx);
 

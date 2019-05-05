@@ -37,8 +37,10 @@ class Heap {
 
     void fixUp(idx_t wordIdx);
 
+    [[ using gnu : hot ]]
     void insert(idx_t wordIdx);
 
+    [[ using gnu : hot ]]
     std::vector<idx_t> kMost(fast_t k) const;
 };
 
