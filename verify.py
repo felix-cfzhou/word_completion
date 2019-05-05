@@ -58,10 +58,8 @@ def main():
         completions = []
         for i in range(sz1):
             completions.append(list(map(int, input().split())))
-            '''
             if len(completions[-1]) != sz2:
                 raise Exception("Bad length")
-            '''
         try:
             w.verifyCompletions(token, k, completions)
         except Exception as e:
