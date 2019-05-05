@@ -1,61 +1,20 @@
 #include "heap.h"
 
 
-void Heap::swap(fast_t i, fast_t swapIdx) {
-    // if fixUp ruins sortedness of array, perform this wap at most once
-    ++firstPriorityOcurrenceMap.at(theHeap[swapIdx].priority);
-    if(swapIdx == 0 || theHeap[swapIdx-1].priority > theHeap[i].priority) firstPriorityOcurrenceMap.emplace(theHeap[i].priority, swapIdx);
-    std::swap(theHeap[i], theHeap[swapIdx]);
-    std::swap(wordHeapIdxMap.at(theHeap[i].wordIdx), wordHeapIdxMap.at(theHeap[swapIdx].wordIdx));
-}
-
 void Heap::fixUp(idx_t wordIdx) {
-    // we keep track of all "runs" of priorities so we can update the priorities with at most one swap
     const fast_t i = wordHeapIdxMap.at(wordIdx);
-    const fast_t oldPriority = theHeap[i].priority;
     const fast_t newPriority = ++theHeap[i].priority;
 
-    const fast_t heapSize = theHeap.size();
+    if(i == 0 || theHeap[i-1].priority >= newPriority) return;
 
-    if(heapSize == 1) {
-        firstPriorityOcurrenceMap.erase(oldPriority);
-        firstPriorityOcurrenceMap.emplace(newPriority, 0);
-    }
-    else if(i == 0) {
-        if(theHeap[1].priority == oldPriority) {
-            ++firstPriorityOcurrenceMap.at(oldPriority);
-            firstPriorityOcurrenceMap.emplace(newPriority, 0);
-        }
-        else {
-            firstPriorityOcurrenceMap.erase(oldPriority);
-            firstPriorityOcurrenceMap.emplace(newPriority, 0);
-        }
-    }
-    else if(i == heapSize-1) {
-        if(newPriority <= theHeap[i-1].priority) {
-            firstPriorityOcurrenceMap.erase(oldPriority);
-            if(newPriority != theHeap[i-1].priority) firstPriorityOcurrenceMap.emplace(newPriority, heapSize-1);
-        }
-        else swap(i, firstPriorityOcurrenceMap.at(theHeap[i-1].priority));
-    }
-    else {
-        fast_t leftPriority = theHeap[i-1].priority;
-        if(newPriority > leftPriority) swap(i, firstPriorityOcurrenceMap.at(leftPriority));
-        else if(newPriority == leftPriority) {
-            if(oldPriority == theHeap[i+1].priority) ++firstPriorityOcurrenceMap.at(oldPriority);
-            else firstPriorityOcurrenceMap.erase(oldPriority);
-        }
-        else {
-            firstPriorityOcurrenceMap.emplace(newPriority, i);
-            if(theHeap[i+1].priority == oldPriority) ++firstPriorityOcurrenceMap.at(oldPriority);
-            else firstPriorityOcurrenceMap.erase(oldPriority);
-        }
-    }
+    fast_t j = i-1;
+    for(; j>=0 && theHeap[j].priority<newPriority; --j);
+    std::swap(wordHeapIdxMap.at(wordIdx), wordHeapIdxMap.at(theHeap[j+1].wordIdx));
+    std::swap(theHeap[i], theHeap[j+1]);
 }
 
 void Heap::insert(idx_t wordIdx) {
     wordHeapIdxMap.emplace(wordIdx, theHeap.size());
-    if(theHeap.empty() || theHeap.back().priority > 1) firstPriorityOcurrenceMap.emplace(1, theHeap.size());
     theHeap.emplace_back(wordIdx, 1);
 }
 
