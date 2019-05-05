@@ -36,6 +36,8 @@ class Trie {
 
     Node* theTrie;
 
+    void displayTrie(Node *, size_t) const;
+
     public:
     struct FindResult {
         using Path = std::vector<Node *>;
@@ -44,7 +46,8 @@ class Trie {
             FOUND = 0,
             END_OF_TRIE,
             END_OF_NEEDLE,
-            SPLIT
+            SPLIT,
+            FOUND_SPLIT,
         };
 
         const Indicator indicator;
@@ -67,9 +70,10 @@ class Trie {
     FindResult find(std::string_view) const;
 
     void access(std::string_view, idx_t wordIdx);
-    void access(const FindResult::Path &path, idx_t wordIdx);
+    void access(const FindResult &findResult, idx_t wordIdx);
 
     void insert(std::string_view, idx_t wordIdx);
+    void insert(const FindResult &findResult, std::string_view word, idx_t wordIdx);
 
     std::vector<std::vector<idx_t>> getCompletionIdx(std::string_view word, fast_t multiplicity) const;
 };

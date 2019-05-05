@@ -20,13 +20,13 @@ idx_t WordCompletion::access(string_view w) {
     const auto find_result = trie.find(w);
     if(find_result.indicator != Trie::FindResult::Indicator::FOUND) {
         idx_t idx = size++;
-        trie.insert(w, idx);
+        trie.insert(find_result, w, idx);
 
         return idx;
     }
 
     const idx_t wordIdx = find_result.path.back()->idx;
-    trie.access(find_result.path, wordIdx);
+    trie.access(find_result, wordIdx);
     return wordIdx;
 }	
 

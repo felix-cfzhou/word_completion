@@ -79,17 +79,17 @@ Trie::FindResult Trie::find(std::string_view word) const {
     const size_t wordSize = word.size();
     for(size_t k=0; k<wordSize;) {
         current = current->getChild(word[k]);
-        if(!current) break;
+        if(!current) return {FindResult::Indicator::END_OF_TRIE, std::move(path), k, 0};
         path.emplace_back(current);
 
         const size_t keySize = current->key.size();
         for(size_t l=0; l<keySize; ++l, ++k) {
             if(k == wordSize)return {FindResult::Indicator::END_OF_NEEDLE, std::move(path), k, l};
-            else if(word[k] != current->key[l]) return {FindResult::Indicator::END_OF_TRIE, std::move(path), k, l};
+            else if(word[k] != current->key[l]) return {FindResult::Indicator::SPLIT, std::move(path), k, l};
         }
 
         if(k == wordSize) {
-            if(current->idx < 0) return {FindResult::Indicator::SPLIT, std::move(path), k, 0};
+            if(current->idx < 0) return {FindResult::Indicator::FOUND_SPLIT, std::move(path), k, 0};
             else return {FindResult::Indicator::FOUND, std::move(path), k, 0};
         }
     } 
@@ -113,12 +113,11 @@ void Trie::access(std::string_view word, idx_t wordIdx) {
     } 
 }
 
-void Trie::access(const FindResult::Path &path, idx_t wordIdx) {
-    for(auto nodePtr : path) nodePtr->heap.fixUp(wordIdx);
+void Trie::access(const FindResult &findResult, idx_t wordIdx) {
+    for(auto nodePtr : findResult.path) nodePtr->heap.fixUp(wordIdx);
 }
 
-/*
-void displayTrie(Trie::Node *trie, size_t indent=0) {
+void Trie::displayTrie(Trie::Node *trie, size_t indent=0) const {
     for(size_t count=0; count < indent; ++count) std::cout << "  ";
     std::cout << trie->key << ": ";
     for(auto child : trie->children) {
@@ -131,7 +130,6 @@ void displayTrie(Trie::Node *trie, size_t indent=0) {
         if(child) displayTrie(child, indent+1);
     }
 }
-*/
 
 void Trie::insert(std::string_view word, idx_t wordIdx) {
     // std::cout << "inserting: " << word << std::endl;
@@ -196,6 +194,57 @@ void Trie::insert(std::string_view word, idx_t wordIdx) {
     // displayTrie(theTrie);
     // std::cout << std::endl;
     return;
+}
+
+void Trie::insert(const Trie::FindResult &findResult, std::string_view word, idx_t wordIdx) {
+    // std::cout << "inserting: " << word << std::endl;
+    const auto &path = findResult.path;
+    const size_t pathSize = path.size();
+    for(size_t k=0; k<pathSize-1; ++k) path[k]->heap.insert(wordIdx);
+
+    Node *last = path.back();
+    switch(findResult.indicator) {
+        case FindResult::Indicator::END_OF_TRIE:
+            {
+                last->heap.insert(wordIdx);
+                auto &child = last->children[word[findResult.needleCharIdx] - 'a'];
+                child = new Node{std::string(word.substr(findResult.needleCharIdx)), wordIdx};
+                child->heap.insert(wordIdx);
+            }
+            break;
+        case FindResult::Indicator::END_OF_NEEDLE:
+            {
+                Node &parent = *path[path.size()-2];
+                Node *child = new Node {last->key.substr(0, findResult.keyCharIdx), wordIdx, *last};
+                parent.children[child->key.front() - 'a'] = child;
+                child->heap.insert(wordIdx);
+                last->key.erase(0, findResult.keyCharIdx);
+                child->children[last->key.front() - 'a'] = last;
+            }
+            break;
+        case FindResult::Indicator::SPLIT:
+            {
+                Node &parent = *path[path.size()-2];
+                Node *newGrandChild = new Node{std::string(word.substr(findResult.needleCharIdx)), wordIdx};
+                newGrandChild->heap.insert(wordIdx);
+                Node *child = new Node{last->key.substr(0, findResult.keyCharIdx), -1, *last};
+                parent.children[child->key.front() - 'a'] = child;
+                child->heap.insert(wordIdx);
+                last->key.erase(0, findResult.keyCharIdx);
+                child->children[last->key.front() - 'a'] = last;
+                child->children[newGrandChild->key.front() - 'a'] = newGrandChild;
+            }
+            break;
+        case FindResult::Indicator::FOUND_SPLIT:
+            {
+                last->idx = wordIdx;
+                last->heap.insert(wordIdx);
+            }
+            break;
+        default: throw std::logic_error {"illegal insert, word already exists"};
+    }
+    // displayTrie(theTrie);
+    // std::cout << std::endl;
 }
 
 std::vector<std::vector<idx_t>> Trie::getCompletionIdx(std::string_view word, fast_t multiplicity) const {
