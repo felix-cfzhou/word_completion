@@ -27,10 +27,8 @@ class Trie {
         static void operator delete(void *) noexcept {}
         // we never delete so there is no need for operate delete overload
 
-        [[ using gnu : hot ]]
         Node(std::string key, idx_t idx);
 
-        [[ using gnu : hot ]]
         Node(std::string key, idx_t idx, const Node &other);
 
         Node(const Node &other) = delete;

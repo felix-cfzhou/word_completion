@@ -35,9 +35,9 @@ class Heap {
     {
     }
 
+    [[ using gnu : hot ]]
     void fixUp(idx_t wordIdx);
 
-    [[ using gnu : hot ]]
     void insert(idx_t wordIdx);
 
     [[ using gnu : hot ]]

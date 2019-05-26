@@ -40,7 +40,6 @@ template<typename T, fast_t N=1024> struct FixedSizeAllocator {
 
     // We do not need deallocate as we never delete a Trie Node
 
-    [[ using gnu : hot ]]
     ~FixedSizeAllocator() {
         for (fast_t k=0; k<sizeBlocks-1; ++k) {
             for(fast_t l=0; l<N; ++l) {
