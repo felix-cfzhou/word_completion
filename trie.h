@@ -72,6 +72,8 @@ class Trie {
     Trie():
         theTrie{new Node {"", -1}}
     {}
+    Trie(const Trie &other) = delete;
+    Trie &operator=(const Trie &other) = delete;
 
     const FindResult find(std::string_view) const;
 
