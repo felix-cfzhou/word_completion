@@ -6,7 +6,7 @@
 #include "types.h"
 
 
-template<typename T, fast_t N=1024> struct FixedSizeAllocator {
+template<typename T, fast_t N=256> struct FixedSizeAllocator {
     // we allocate blocks of space for Trie Nodes for better cache performance
     constexpr static size_t defaultSize = 64;
 
