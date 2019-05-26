@@ -5,6 +5,7 @@
 
 
 class WordCompletion{
+    mutable std::shared_mutex theMutex;
     size_t size;
     Trie trie;
 

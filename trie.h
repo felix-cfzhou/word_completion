@@ -79,11 +79,11 @@ class Trie {
 
     [[ deprecated ]]
     void access(std::string_view, idx_t wordIdx);
-    void access(const FindResult &findResult, idx_t wordIdx);
+    void access(const FindResult &findResult, idx_t wordIdx, std::unique_lock<std::shared_mutex> connectionLock);
 
     [[ deprecated ]]
     void insert(std::string_view, idx_t wordIdx);
-    void insert(const FindResult &findResult, std::string_view word, idx_t wordIdx);
+    void insert(const FindResult &findResult, std::string_view word, idx_t wordIdx, std::unique_lock<std::shared_mutex> connectionLock);
 
     std::vector<std::vector<idx_t>> getCompletionIdx(std::string_view word, fast_t multiplicity) const;
 };

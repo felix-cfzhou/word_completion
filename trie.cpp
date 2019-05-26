@@ -48,10 +48,12 @@ const Trie::FindResult Trie::find(std::string_view word) const {
     return {FindResult::Indicator::END_OF_TRIE, std::move(path), 0, 0};
 }
 
-void Trie::access(const FindResult &findResult, idx_t wordIdx) {
+void Trie::access(const FindResult &findResult, idx_t wordIdx, std::unique_lock<std::shared_mutex> connectionLock) {
     const size_t pathSize = findResult.path.size();
 
     std::unique_lock currWriteLock {findResult.path.front()->theMutex};
+    connectionLock.unlock(); // global lock preventing write between find and access
+
     findResult.path.front()->heap.fixUp(wordIdx);
 
     for(size_t k=1; k<pathSize; ++k) {
@@ -65,12 +67,14 @@ void Trie::access(const FindResult &findResult, idx_t wordIdx) {
     }
 }
 
-void Trie::insert(const Trie::FindResult &findResult, std::string_view word, idx_t wordIdx) {
+void Trie::insert(const Trie::FindResult &findResult, std::string_view word, idx_t wordIdx, std::unique_lock<std::shared_mutex> connectionLock) {
     // std::cout << "inserting: " << word << std::endl;
     const auto &path = findResult.path;
     const size_t pathSize = path.size();
 
     std::unique_lock currWriteLock {path.front()->theMutex};
+    connectionLock.unlock(); // global lock preventing write between find and insert
+
     path.front()->heap.insert(wordIdx);
 
     for(size_t k=1; k<pathSize-1; ++k) {
