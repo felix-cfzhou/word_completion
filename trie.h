@@ -13,6 +13,7 @@ class Trie {
 
         static FixedSizeAllocator<Node> pool;
 
+        mutable std::shared_mutex theMutex;
         std::string key;
         idx_t idx;
         Heap heap;
@@ -40,7 +41,6 @@ class Trie {
     };
 
     Node* theTrie;
-    mutable std::shared_mutex theMutex;
 
     void displayTrie(Node *, size_t) const;
 

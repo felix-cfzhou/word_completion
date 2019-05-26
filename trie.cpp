@@ -70,7 +70,6 @@ Trie::Node::Node(std::string key, idx_t idx, const Node &other):
 {}
 
 const Trie::FindResult Trie::find(std::string_view word) const {
-    std::shared_lock readLock(theMutex);
     std::vector<Node *> path {theTrie};
     Node *current = theTrie;
 
@@ -96,12 +95,10 @@ const Trie::FindResult Trie::find(std::string_view word) const {
 }
 
 void Trie::access(const FindResult &findResult, idx_t wordIdx) {
-    std::lock_guard writeLock(theMutex);
     for(auto nodePtr : findResult.path) nodePtr->heap.fixUp(wordIdx);
 }
 
 void Trie::insert(const Trie::FindResult &findResult, std::string_view word, idx_t wordIdx) {
-    std::lock_guard writeLock(theMutex);
     // std::cout << "inserting: " << word << std::endl;
     const auto &path = findResult.path;
     const size_t pathSize = path.size();
@@ -153,7 +150,6 @@ void Trie::insert(const Trie::FindResult &findResult, std::string_view word, idx
 }
 
 std::vector<std::vector<idx_t>> Trie::getCompletionIdx(std::string_view word, fast_t multiplicity) const {
-    std::shared_lock readLock(theMutex);
     std::vector<std::vector<idx_t>> result;
     const size_t wordSize = word.size();
     result.reserve(wordSize + 1);
