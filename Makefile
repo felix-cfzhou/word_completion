@@ -9,7 +9,7 @@ OBJ_FILES = $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%,$(SRC_FILES:.cpp=.o))
 OBJ_DIRS = $(sort $(dir $(OBJ_FILES)))
 DEP_DIRS = $(sort $(dir $(DEP_FILES)))
 
-CXX = g++-8
+CXX = g++
 DEP_LOC = $(patsubst $(OBJ_DIR)/%,$(DEP_DIR)/%,$*.d)
 DEPFLAGS = -MT $@ -MMD -MP -MF $(DEP_LOC)
 WFLAGS = -Wall -Wextra -Werror -pg -O3 -Ofast -flto
