@@ -1,7 +1,7 @@
 #ifndef WORD_COMPLETION
 #define WORD_COMPLETION
 
-#include "trie.h"
+#include "trie/trie.h"
 
 
 class WordCompletion{

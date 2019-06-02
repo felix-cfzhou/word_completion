@@ -1,10 +1,10 @@
-SRC_DIR = .
+SRC_DIR = src
 OBJ_DIR = obj
 DEP_DIR = dep
 
-SRC_FILES = $(shell find . -name '*.cpp' | sort -k 1nr | cut -f2-)
+SRC_FILES = $(shell find src -name '*.cpp' | sort -k 1nr | cut -f2-)
 OBJ_FILES = $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%,$(SRC_FILES:.cpp=.o))
-	DEP_FILES = $(patsubst $(SRC_DIR)/%,$(DEP_DIR)/%,$(SRC_FILES:.cpp=.d))
+DEP_FILES = $(patsubst $(SRC_DIR)/%,$(DEP_DIR)/%,$(SRC_FILES:.cpp=.d))
 
 OBJ_DIRS = $(sort $(dir $(OBJ_FILES)))
 DEP_DIRS = $(sort $(dir $(DEP_FILES)))

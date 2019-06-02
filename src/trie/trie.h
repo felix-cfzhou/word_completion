@@ -4,7 +4,7 @@
 #include <shared_mutex>
 
 #include "fixed_size_allocator.h"
-#include "heap.h"
+#include "heap/heap.h"
 
 
 class Trie {

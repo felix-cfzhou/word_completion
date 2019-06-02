@@ -1,4 +1,4 @@
-#include "word_completion.h"
+#include "word_completion/word_completion.h"
 #include <chrono>
 #include <cstdlib>
 #include <fstream>
